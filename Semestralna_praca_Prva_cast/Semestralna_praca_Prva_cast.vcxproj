@@ -137,7 +137,6 @@
   <ItemGroup>
     <ClCompile Include="DruhaCast.cpp" />
     <ClCompile Include="Semestralna_praca_Prva_cast.cpp" />
-    <ClCompile Include="Zastavka.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algorithm.h" />
@@ -146,7 +145,7 @@
     <ClInclude Include="DruhaCast.h" />
     <ClInclude Include="Semestralna_praca_Prva_cast.h" />
     <ClInclude Include="PrvaCast.h" />
-    <ClInclude Include="Zastavka.h" />
+    <ClInclude Include="Dopravca.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

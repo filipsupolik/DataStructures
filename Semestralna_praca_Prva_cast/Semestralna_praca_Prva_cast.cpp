@@ -1,6 +1,5 @@
 ﻿// Semestralna_praca_Prva_cast.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
+//	
 #include "PrvaCast.h"
 #include "DruhaCast.h"
 #include "Algorithm.h"
@@ -22,6 +21,7 @@ int main()
 		prvaCast.spustiFilter(vstupnySubor);
 	}*/
 	prvaCast.spustiFilter(vstupnySubor);
+	druhaCast.IteratorInterface();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

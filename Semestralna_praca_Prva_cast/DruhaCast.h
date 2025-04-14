@@ -13,7 +13,12 @@ public:
 	void NacitajObce();
 	void NacitajUlice();
 	void NacitajZastavky();
-	HierarchyBlockType& dajObec(std::string nazovObce);
-	HierarchyBlockType& dajUlicu(std::string nazovObce, std::string nazovUlice);
+	HierarchyBlockType& DajObec(std::string nazovObce);
+	HierarchyBlockType& DajUlicu(std::string nazovObce, std::string nazovUlice);
+	void IteratorInterface();
+	void VypisAktualnuPoziciuIteratora(Dopravca* dp);
+	void VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType*>* sons);
+	void FiltrujZoznamZastavok(ds::amt::Hierarchy<HierarchyBlockType>::PreOrderHierarchyIterator& it);
+	bool VstupOdUzivatela(ds::amt::Hierarchy<HierarchyBlockType>::PreOrderHierarchyIterator& it);
 };
 

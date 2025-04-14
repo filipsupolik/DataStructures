@@ -12,64 +12,17 @@
 #include "Citac.h"
 class PrvaCast: public Data
 {
-private:
-	bool koniecProgramu = false;
-	std::string nazovObce, castNazvuUice = "";
-	double minLong, minLat, maxLong, maxLat = 0.0;
-	std::string toLowerCase(const std::string& input) {
-		std::string result = input;
-		std::transform(result.begin(), result.end(), result.begin(),
-			[](unsigned char c) { return std::tolower(c); });
-		return result;
-	}
 public:
-	PrvaCast(Data& data) : Data(data) {}
+	PrvaCast(Data& data) : Data(data) {};
 	void spustiFilter(const std::string& vstupnySubor) 
 	{
 		char nacitajVstup = vstupZKlavesnice();
 		zadajZoznamParametrov(nacitajVstup);
-		filtrujZoznam(zoznamZastavok, filtrovanyZoznam, nacitajVstup);
+		filtrujZoznam(*zoznamZastavok, filtrovanyZoznam, nacitajVstup);
 		vypisZastavky();
 	}
-	char vstupZKlavesnice()
-	{
-		char vstup;
-		std::cout << "Zadajte typ filtra \n";
-		std::cout << "o - nazov obce kde sa zastavka nachadza, \n";
-		std::cout << "n - cast nazvu ulice \n";
-		std::cout << "g - zastavka sa nachadza v geografickej oblasti \n";
-		std::cout << "k - ukonci program \n";
-		std::cin >> vstup;
-		return vstup;
-	}
 
-	void zadajZoznamParametrov(const char& typFiltra)
-	{
-		switch (typFiltra)
-		{
-		case 'o':
-			std::cout << "Zadajte cely nazov obce, kde sa zastavka nachadza: \n";
-			std::cin >> this->nazovObce;
-			this->nazovObce = toLowerCase(this->nazovObce);
-			break;
-		case 'n':
-			std::cout << "Zadajte cast nazvu ulice, kde sa zastavka nachadza: \n";
-			std::cin >> this->castNazvuUice;
-			this->castNazvuUice = toLowerCase(this->castNazvuUice);
-			break;
-		case 'g':
-			std::cout << "Zadajte minimalnu dlzku:\n";
-			std::cin >> this->minLong;
-			std::cout << "Zadajte maximalnu dlzku:\n";
-			std::cin >> this->maxLong;
-			std::cout << "Zadajte minimalnu sirku:\n";
-			std::cin >> this->minLat;
-			std::cout << "Zadajte maximalnu dlzku:\n";
-			std::cin >> this->maxLat;
-		}
-	}
-
-	void filtrujZoznam(const std::vector<Dopravca*>& vstupnyZoznam, std::vector<Dopravca*>& vystupnyZoznam, const char typFiltru)
+	void filtrujZoznam(ZoznamZastavok vstupnyZoznam, std::vector<Dopravca*>& vystupnyZoznam, const char typFiltru)
 	{
 		std::function<bool(const Dopravca*)> jeVObci = [&](const Dopravca* zastavka) -> bool {
 			return toLowerCase(zastavka->manicipality) == this->nazovObce;
@@ -99,7 +52,7 @@ public:
 			break;
 		case 'g':
 			pouzivanyFilter = jeVOblasti;
-
+			break;
 		default:
 			break;
 		}

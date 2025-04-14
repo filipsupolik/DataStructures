@@ -29,13 +29,14 @@ public:
 		std::string hodnota;
 		std::stringstream riadokStream(aktualnyRiadok);
 		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return nullptr;
 		zastavka->stopId = std::stoi(hodnota);
+
 		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return nullptr;
 		zastavka->street = hodnota;
+
 		std::getline(riadokStream, hodnota, ';');
-		/*++count;
-		std::cout << "Longitude: " << hodnota << std::endl;
-		std::cout << count;*/
 		if (hodnota == "") {
 			zastavka->longitude = 0.0;
 			zastavka->latitude = 0.0;
@@ -47,6 +48,7 @@ public:
 			zastavka->latitude = std::stod(hodnota);
 		}
 		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return nullptr;
 		zastavka->manicipality = hodnota;
 		return zastavka;
 	}

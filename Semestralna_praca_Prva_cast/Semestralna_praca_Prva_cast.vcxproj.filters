@@ -21,9 +21,6 @@
     <ClCompile Include="DruhaCast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Zastavka.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Semestralna_praca_Prva_cast.h">
@@ -38,7 +35,7 @@
     <ClInclude Include="DruhaCast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Zastavka.h">
+    <ClInclude Include="Dopravca.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Citac.h">
