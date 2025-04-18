@@ -22,7 +22,7 @@ public:
 		vypisZastavky();
 	}
 
-	void filtrujZoznam(ZoznamZastavok vstupnyZoznam, std::vector<Dopravca*>& vystupnyZoznam, const char typFiltru)
+	void filtrujZoznam(ZoznamZastavok vstupnyZoznam, std::vector<Dopravca>& vystupnyZoznam, const char typFiltru)
 	{
 		std::function<bool(const Dopravca*)> jeVObci = [&](const Dopravca* zastavka) -> bool {
 			return toLowerCase(zastavka->manicipality) == this->nazovObce;
@@ -71,7 +71,7 @@ public:
 	{
 		for (size_t i = 0; i < filtrovanyZoznam.size(); ++i)
 		{
-			std::cout << filtrovanyZoznam[i]->stopId << ", " << filtrovanyZoznam[i]->street << ", " << filtrovanyZoznam[i]->manicipality << std::endl;
+			std::cout << filtrovanyZoznam[i].stopId << ", " << filtrovanyZoznam[i].street << ", " << filtrovanyZoznam[i].manicipality << std::endl;
 		}
 	}
 

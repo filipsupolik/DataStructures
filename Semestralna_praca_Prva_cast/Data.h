@@ -3,6 +3,7 @@
 #include <libds/amt/implicit_sequence.h>
 #include <libds/amt/explicit_hierarchy.h>
 #include "Dopravca.h"
+#include "NodeDopravca.h"
 #include "Citac.h"
 
 class Data
@@ -18,13 +19,8 @@ protected:
 		return result;
 	}
 	std::vector<Dopravca> filtrovanyZoznam;
-	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<Dopravca*>;
-	using SequenceBlockType = ds::amt::MemoryBlock<Dopravca*>;
-	using ZoznamObci = ds::amt::ImplicitSequence<Dopravca*>;
-	using ZoznamUlic = ds::amt::ImplicitSequence<Dopravca*>;
+	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<NodeDopravca>;
 	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca>;
-	ZoznamObci* zoznamObci = nullptr;
-	ZoznamUlic* zoznamUlic = nullptr;
 	ZoznamZastavok* zoznamZastavok = nullptr;
 
 public:
@@ -33,86 +29,17 @@ public:
 	{
 		this->zoznamZastavok = data.zoznamZastavok;
 		this->filtrovanyZoznam = data.filtrovanyZoznam;
-
-		this->zoznamObci = new ZoznamObci();
-		for (auto it = data.zoznamObci->begin(); it != data.zoznamObci->end(); ++it)
-		{
-			Dopravca* novaObec = new Dopravca(**it);
-			this->zoznamObci->insertLast().data_ = novaObec;
-		}
-
-		this->zoznamUlic = new ZoznamUlic();
-		for (auto it = data.zoznamUlic->begin(); it != data.zoznamUlic->end(); ++it)
-		{
-			Dopravca* novaUlica = new Dopravca(**it);
-			this->zoznamUlic->insertLast().data_ = novaUlica;
-		}
-
-		this->zoznamZastavok = new ZoznamZastavok();
 	}
 	Data(std::string subor)
 	{
-		this->zoznamObci= new ZoznamObci();
-		this->zoznamUlic = new ZoznamUlic();
 		this->zoznamZastavok = new ZoznamZastavok();
 		nacitajZastavku(subor);
-		nacitajObceDoSekvencie();
-		nacitajUliceDoSekvencie();
 	};
 	~Data()
 	{
-		for (auto it = this->zoznamObci->begin(); it != this->zoznamObci->end(); ++it) {
-			delete (*it);
-		}
-		delete this->zoznamObci;
-		for (auto it = this->zoznamUlic->begin(); it != this->zoznamUlic->end(); ++it) {
-			delete (*it);
-		}
-		delete this->zoznamUlic;
+		delete this->zoznamZastavok;
 	}
 
-	void nacitajObceDoSekvencie()
-	{
-		size_t poradieObce = 0;
-		for (size_t i = 0; i < this->zoznamZastavok->size(); ++i)
-		{
-			std::string nacitavanyNazov = this->zoznamZastavok->access(i)->data_.manicipality;
-			if (zoznamObci->isEmpty())
-			{
-				zoznamObci->insertFirst().data_ = new Dopravca();
-				zoznamObci->accessFirst()->data_->manicipality =  nacitavanyNazov;
-			}
-			else if(zoznamObci->access(poradieObce)->data_->manicipality != nacitavanyNazov)
-			{
-				zoznamObci->insertLast().data_ = new Dopravca();
-				zoznamObci->accessLast()->data_->manicipality = nacitavanyNazov;
-				poradieObce++;
-			}
-		}
-	}
-
-	void nacitajUliceDoSekvencie()
-	{
-		size_t poradieUlice = 0;
-		for (size_t i = 0; i < this->zoznamZastavok->size(); ++i)
-		{
-			std::string nacitavanyNazovUlice = this->zoznamZastavok->access(i)->data_.street;
-			std::string nacitavanyNazovObce = this->zoznamZastavok->access(i)->data_.manicipality;
-			if (zoznamUlic->isEmpty())
-			{
-				zoznamUlic->insertFirst().data_ = new Dopravca();
-				zoznamUlic->accessFirst()->data_->manicipality = nacitavanyNazovObce;
-				zoznamUlic->accessFirst()->data_->street = nacitavanyNazovUlice;
-			}
-			else if (zoznamUlic->access(poradieUlice)->data_->street != nacitavanyNazovUlice)
-			{
-				zoznamUlic->insertLast().data_ = new Dopravca();
-				zoznamUlic->accessLast()->data_->manicipality = nacitavanyNazovObce;
-				zoznamUlic->accessLast()->data_->street = nacitavanyNazovUlice;
-				poradieUlice++;
-			}
-		}
-	}
 	void zadajZoznamParametrov(const char& typFiltra)
 	{
 		switch (typFiltra)

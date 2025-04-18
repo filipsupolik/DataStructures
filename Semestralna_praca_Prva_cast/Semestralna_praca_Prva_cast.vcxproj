@@ -143,6 +143,7 @@
     <ClInclude Include="Citac.h" />
     <ClInclude Include="Data.h" />
     <ClInclude Include="DruhaCast.h" />
+    <ClInclude Include="NodeDopravca.h" />
     <ClInclude Include="Semestralna_praca_Prva_cast.h" />
     <ClInclude Include="PrvaCast.h" />
     <ClInclude Include="Dopravca.h" />

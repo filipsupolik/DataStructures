@@ -8,124 +8,36 @@ DruhaCast::DruhaCast(const Data& other) : Data(other)
 
 void DruhaCast::vytvorHierarchiu()
 {
-    hierarchy.emplaceRoot().data_ = new Dopravca();
-    hierarchy.accessRoot()->data_->manicipality = "Britsky narodny dopravca";
+    hierarchy.emplaceRoot().data_ = NodeDopravca();
+    hierarchy.accessRoot()->data_.dataNode_ = "Britsky narodny dopravca";
 	auto* lastInserted = hierarchy.accessRoot();
     for (auto it = this->zoznamZastavok->begin(); it != this->zoznamZastavok->end(); it++)
     {
-        if (lastInserted->sons_ == nullptr || hierarchy.accessSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size())->data_->manicipality != (*it).manicipality)
+        if (lastInserted->sons_ == nullptr || hierarchy.accessSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size())->data_.dataNode_ != (*it).manicipality)
         {
-            auto& addedMunicipality = hierarchy.emplaceSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size());
-            addedMunicipality.data_ = new Dopravca();
-            addedMunicipality.data_->manicipality = (*it).manicipality;
-            addedMunicipality.data_->indexObce = hierarchy.accessRoot()->sons_->size();
-
-            auto& addedStreet = hierarchy.emplaceSon(addedMunicipality, addedMunicipality.sons_->size());
-            addedStreet.data_ = new Dopravca();
-            addedStreet.data_->manicipality = (*it).manicipality;
-            addedStreet.data_->street = (*it).street;
-            addedStreet.data_->indexUlice = addedMunicipality.sons_->size();
-            lastInserted = &addedStreet;
+			auto& addedNodeObec = hierarchy.emplaceSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size());
+			addedNodeObec.data_ = NodeDopravca((*it).manicipality, 1, hierarchy.accessRoot()->sons_->size());
+			auto& addedNodeUlica = hierarchy.emplaceSon(addedNodeObec, addedNodeObec.sons_->size());
+			addedNodeUlica.data_ = NodeDopravca((*it).street, 2, addedNodeObec.sons_->size());
+			lastInserted = &addedNodeUlica;
         }
-        else if (lastInserted->data_->street != (*it).street)
+        else if (lastInserted->data_.dataNode_ != (*it).street)
         {
-            auto& parentOfStreet = *lastInserted->parent_;
-			auto& addedStreet = hierarchy.emplaceSon(parentOfStreet, parentOfStreet.sons_->size());
+			auto& parent = *hierarchy.accessParent(*lastInserted);
+			auto& addedNodeUlica = hierarchy.emplaceSon(parent, parent.sons_->size());
+			addedNodeUlica.data_ = NodeDopravca((*it).street, 2, parent.sons_->size());
         }
+		lastInserted->data_.zastavky.insertLast().data_ = &(*it);
     }
-}
-
-void DruhaCast::NacitajObce()
-{
-	size_t indexPridanejObce = 0;
-	for (auto it = this->zoznamObci->begin(); it != this->zoznamObci->end(); ++it)
-	{
-		Dopravca* obec = (*it);
-		auto& novyVrcholObec = hierarchy.emplaceSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size());
-		novyVrcholObec.data_ = obec;
-		indexPridanejObce++;
-		obec->indexObce = indexPridanejObce;
-	}
-}
-
-void DruhaCast::NacitajUlice()
-{
-	size_t indexPridanejUlice = 0;
-	for (auto it = this->zoznamUlic->begin(); it != this->zoznamUlic->end(); ++it)
-	{
-		Dopravca* ulica = (*it);
-		auto& aktualnaObec = DajObec(ulica->manicipality);
-		auto& vrcholUlica = hierarchy.emplaceSon(aktualnaObec, aktualnaObec.sons_->size());
-		vrcholUlica.data_ = ulica;
-		ulica->indexUlice = indexPridanejUlice;
-	}
-}
-
-void DruhaCast::NacitajZastavky()
-{
-	size_t poradiePridania = 0;
-	for (auto it = this->zoznamZastavok->begin(); it != this->zoznamZastavok->end(); ++it)
-	{
-		Dopravca zastavka = (*it);
-		auto& aktualnaObec = DajObec(zastavka.manicipality);
-		auto& aktualnaUlica = DajUlicu(zastavka.manicipality, zastavka.street);
-		if (aktualnaUlica.data_->street == zastavka.street)
-		{
-			auto& vrcholZastavka = hierarchy.emplaceSon(aktualnaUlica, aktualnaUlica.sons_->size());
-			vrcholZastavka.data_ = zastavka;
-		}
-		zastavka.indexZastavky = poradiePridania;
-		poradiePridania++;
-	}
-}
-
-DruhaCast::HierarchyBlockType& DruhaCast::DajObec(std::string nazovObce)
-{
-	size_t obecIndex = 0;
-	auto* obecSons = hierarchy.accessRoot()->sons_;
-	HierarchyBlockType* obec = nullptr;
-	for (obecIndex = 0; obecIndex < obecSons->size(); ++obecIndex) {
-		obec = obecSons->access(obecIndex)->data_;
-
-		if (obec->data_->manicipality == nazovObce) {
-			break;
-		}
-	}
-	return *obec;
-}
-
-DruhaCast::HierarchyBlockType& DruhaCast::DajUlicu(std::string nazovObce,std::string nazovUlice)
-{
-	int obecIndex = 0;
-	int ulicaIndex = 0;
-
-	auto* rootSons = hierarchy.accessRoot()->sons_;
-	for (auto it = rootSons->begin(); it != rootSons->end(); ++it, ++obecIndex) {
-		const auto* rootSon = (*it)->data_;
-
-		if (rootSon->manicipality == nazovObce) {
-			break;
-		}
-	}
-
-	auto* obecSons = hierarchy.accessRoot()->sons_->access(obecIndex)->data_->sons_;
-	HierarchyBlockType* ulica = nullptr;
-	for (ulicaIndex = 0; ulicaIndex < obecSons->size(); ++ulicaIndex) {
-		ulica = obecSons->access(ulicaIndex)->data_;
-
-		if (ulica->data_->street == nazovUlice) {
-			break;
-		}
-	}
-	return *ulica;
 }
 
 void DruhaCast::IteratorInterface()
 {
-	auto iteratorDopredu = hierarchy.beginPre();
+	auto iteratorDopredu = DopravcaIterator(&hierarchy, hierarchy.accessRoot());
 	this->VypisAktualnuPoziciuIteratora(*iteratorDopredu);
 	while (true) {
-		this->VypisSynovNaAktualnejPozicii(iteratorDopredu.dajBlockType().sons_);
+		
+		this->VypisSynovNaAktualnejPozicii(iteratorDopredu.dajSynov());
 
 		if (this->VstupOdUzivatela(iteratorDopredu)) {
 			break;
@@ -135,16 +47,9 @@ void DruhaCast::IteratorInterface()
 	}
 }
 
-void DruhaCast::VypisAktualnuPoziciuIteratora(Dopravca* dp)
+void DruhaCast::VypisAktualnuPoziciuIteratora(NodeDopravca dp)
 {
-	if (dp->street == "")
-	{
-		std::cout << "Aktualna pozicia: \x1B[32m" + dp->toString(dp->indexObce) << "\033[0m" << std::endl;
-	}
-	else
-	{
-		std::cout << "Aktualna pozicia: \x1B[32m" + dp->toString(dp->indexUlice) << "\033[0m" << std::endl;
-	}
+	std::cout << "Aktualna pozicia: \x1B[32m" + dp.toString(dp.poradieNode_) << "\033[0m" << std::endl;
 }
 
 void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType*>* sons)
@@ -153,21 +58,19 @@ void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType*>* s
 	std::cout << "Synovia aktualnej pozicie dopravcu: \n";
 
 	for (auto it = sons->begin(); it != sons->end(); ++it) {
-		std::cout << (*it)->data_->toString(indexSyna) << std::endl;
+		std::cout << (*it)->data_.toString(indexSyna) << std::endl;
 		++indexSyna;
 	}
 }
 
-void DruhaCast::FiltrujZoznamZastavok(ds::amt::Hierarchy<HierarchyBlockType>::PreOrderHierarchyIterator& it)
+void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 {
-	++it;
 	using Vysledok = ds::amt::ImplicitSequence<Dopravca*>;
 	Vysledok vysledok;
 	char uroven;
-	std::cout << "Chcete filtrovat podla: [o]bce, [u]lice, [z]astavky\n";
+	std::cout << "Chcete filtrovat podla: [u]lice, [z]astavky\n";
 	std::cin >> uroven;
-	std::function<bool(const Dopravca*)> jeVObci = [&](const Dopravca* zastavka) -> bool {return toLowerCase(zastavka->manicipality) == this->nazovObce;};
-	std::function<bool(const Dopravca*)> jeNaUlici = [&](const Dopravca* zastavka) -> bool {return toLowerCase(zastavka->street).find(this->castNazvuUice) != std::string::npos;};
+	std::function<bool(const NodeDopravca*)> jeNaUlici = [&](const NodeDopravca* zastavka) -> bool {return toLowerCase(zastavka->dataNode_).find(this->castNazvuUice) != std::string::npos;};
 	std::function<bool(const Dopravca*)> jeLatitudeVacsia = [&](const Dopravca* z) {return z->latitude > this->minLat;};
 	std::function<bool(const Dopravca*)> jeLatitudeMensia = [&](const Dopravca* z) {return z->latitude < this->maxLat;};
 	std::function<bool(const Dopravca*)> jeLatitudeRovna = [&](const Dopravca* z) {return z->latitude == this->minLat;};
@@ -260,8 +163,13 @@ void DruhaCast::FiltrujZoznamZastavok(ds::amt::Hierarchy<HierarchyBlockType>::Pr
 		}
 	}
 
-	auto itBegin = ds::amt::MultiWayExplicitHierarchy<Dopravca*>::PreOrderHierarchyIterator(&hierarchy, &it.dajBlockType());
-	auto itEnd = ds::amt::MultiWayExplicitHierarchy<Dopravca*>::PreOrderHierarchyIterator(&hierarchy, nullptr);
+	ds::amt::ImplicitSequence<>::;
+	if ((*it).indexUrovne_ == 2)
+	{
+		auto itBegin = (*it).zastavky.begin();
+	}
+	auto itBegin = it.dajSynov()->begin();
+	auto itEnd = it.dajSynov()->end();
 
 	Algorithm::findAndInsertElement(
 		itBegin,
@@ -272,14 +180,13 @@ void DruhaCast::FiltrujZoznamZastavok(ds::amt::Hierarchy<HierarchyBlockType>::Pr
 			vystupnyZoznam.insertLast().data_ = hodnota;
 		}
 	);
-	--it;
 	for (size_t i = 0; i < vysledok.size(); i++)
 	{
 		std::cout << vysledok.access(i)->data_->street << std::endl;
 	};
 }
 
-bool DruhaCast::VstupOdUzivatela(ds::amt::Hierarchy<HierarchyBlockType>::PreOrderHierarchyIterator& it)
+bool DruhaCast::VstupOdUzivatela(DopravcaIterator& it)
 {
 	std::string vstup;
 	std::cout << "Zadaj moznost [u] -- postup hore, [s] (index) -- zvol syna na indexe, [f] -- filtruj zastavky, [q] -- koniec:\n";
@@ -287,13 +194,13 @@ bool DruhaCast::VstupOdUzivatela(ds::amt::Hierarchy<HierarchyBlockType>::PreOrde
 	std::cin.ignore(256, '\n');
 
 	if (vstup == "u") {
-		--it;
+		it.chodNaRodica();
 	}
 	else if (vstup == "s") {
 		std::string poradieStr;
 		std::cin >> poradieStr;
 		try {
-			it += std::stoi(poradieStr);
+			it.chodNaSyna(std::stoi(poradieStr));
 		}
 		catch (const std::exception& exc) {
 			std::cout << "\x1B[31mArgument nie je cislo\033[0m\n";
@@ -315,5 +222,3 @@ bool DruhaCast::VstupOdUzivatela(ds::amt::Hierarchy<HierarchyBlockType>::PreOrde
 	std::cout << "\n";
 	return false;
 }
-
-

@@ -48,7 +48,6 @@ public:
 		std::getline(riadokStream, hodnota, ';');
 		zastavka.manicipality = hodnota;
 
-		zastavka.indexZastavky++;
 		return zastavka;
 	}
 

@@ -37,7 +37,7 @@ namespace ds::amt {
 		void processLevelOrder(BlockType* node, std::function<void(BlockType*)> operation) const;
 
 	protected:
-		using DataType = decltype(BlockType().data_);
+		using DataType = typename BlockType::DataT;
 
 		class DepthFirstIterator
 		{
@@ -88,7 +88,6 @@ namespace ds::amt {
 			bool operator==(const DepthFirstIterator& other) const;
 			bool operator!=(const DepthFirstIterator& other) const;
 			DataType& operator*();
-			BlockType& dajBlockType();
 
 		protected:
 			void savePosition(BlockType* currentNode);
@@ -107,8 +106,6 @@ namespace ds::amt {
 			PreOrderHierarchyIterator(Hierarchy<BlockType>* hierarchy, BlockType* node);
 			PreOrderHierarchyIterator(const PreOrderHierarchyIterator& other);
 			PreOrderHierarchyIterator& operator++();
-			PreOrderHierarchyIterator& operator--();
-			PreOrderHierarchyIterator& operator+=(size_t indexSyna);
 		};
 
 		//----------
@@ -118,7 +115,7 @@ namespace ds::amt {
 		{
 		public:
 			PostOrderHierarchyIterator(Hierarchy<BlockType>* hierarchy, BlockType* node);
-			PostOrderHierarchyIterator(const PreOrderHierarchyIterator& other);
+			PostOrderHierarchyIterator(const PostOrderHierarchyIterator& other);
 			PostOrderHierarchyIterator& operator++();
 		};
 
@@ -172,6 +169,7 @@ namespace ds::amt {
 
 		//----------
 
+
 		class InOrderHierarchyIterator :
 			public Hierarchy<BlockType>::DepthFirstIterator
 		{
@@ -185,10 +183,10 @@ namespace ds::amt {
 			bool tryToGoToRightSonInCurrentPosition();
 		};
 
+		using IteratorType = InOrderHierarchyIterator;
+
 		InOrderHierarchyIterator begin();
 		InOrderHierarchyIterator end();
-
-		using IteratorType = InOrderHierarchyIterator;
 	};
 
 	//----------
@@ -197,11 +195,11 @@ namespace ds::amt {
 	size_t Hierarchy<BlockType>::level(const BlockType& node) const
 	{
 		size_t level = 0;
-		BlockType* parent = accessParent(node);
+		BlockType* parent = this->accessParent(node);
 		while (parent != nullptr)
 		{
 			level++;
-			parent = accessParent(*parent);
+			parent = this->accessParent(*parent);
 		}
 		return level;
 	}
@@ -365,8 +363,15 @@ namespace ds::amt {
 			}
 			else
 			{
-				myPosition->previousPosition_ = new DepthFirstIteratorPosition(*otherPosition);
-				myPosition = myPosition->previousPosition_;
+				if (myPosition != nullptr)
+				{
+					myPosition->previousPosition_ = new DepthFirstIteratorPosition(*otherPosition);
+					myPosition = myPosition->previousPosition_;
+				}
+				else
+				{
+					throw std::logic_error("Invalid DFS copy init");
+				}
 			}
 		}
 	}
@@ -386,7 +391,10 @@ namespace ds::amt {
 	template<typename BlockType>
 	bool Hierarchy<BlockType>::DepthFirstIterator::operator==(const DepthFirstIterator& other) const
 	{
-		if (hierarchy_ != other.hierarchy_) { return false; }
+		if (hierarchy_ != other.hierarchy_)
+		{
+			return false;
+		}
 
 		DepthFirstIteratorPosition* myPosition = currentPosition_;
 		DepthFirstIteratorPosition* otherPosition = other.currentPosition_;
@@ -413,13 +421,6 @@ namespace ds::amt {
 	{
 		currentPosition_->currentNodeProcessed_ = true;
 		return currentPosition_->currentNode_->data_;
-	}
-
-	template<typename BlockType>
-	auto Hierarchy<BlockType>::DepthFirstIterator::dajBlockType() -> BlockType&
-	{
-		currentPosition_->currentNodeProcessed_ = true;
-		return *currentPosition_->currentNode_;
 	}
 
 	template<typename BlockType>
@@ -478,44 +479,19 @@ namespace ds::amt {
 	template<typename BlockType>
 	typename Hierarchy<BlockType>::PreOrderHierarchyIterator& Hierarchy<BlockType>::PreOrderHierarchyIterator::operator++()
 	{
-		if (this->tryFindNextSonInCurrentPosition()) {
+		if (this->tryFindNextSonInCurrentPosition())
+		{
 			this->savePosition(this->currentPosition_->currentSon_);
 		}
-		else {
+		else
+		{
 			this->removePosition();
-			if (this->currentPosition_ != nullptr) {
+			if (this->currentPosition_ != nullptr)
+			{
 				++(*this);
 			}
 		}
-		return *this;
-	}
 
-	template<typename BlockType>
-	typename Hierarchy<BlockType>::PreOrderHierarchyIterator& Hierarchy<BlockType>::PreOrderHierarchyIterator::operator+=(size_t indexSyna)
-	{
-		auto newSon = this->hierarchy_->accessSon(*this->currentPosition_->currentNode_, indexSyna);
-		if (newSon != nullptr) {
-			this->savePosition(newSon);
-			this->currentPosition_->previousPosition_->currentSonOrder_ = indexSyna;
-			this->currentPosition_->previousPosition_->currentSon_ = newSon;
-			this->currentPosition_->previousPosition_->visitedSonCount_ = indexSyna + 1;
-			this->currentPosition_->previousPosition_->currentNodeProcessed_ = true;
-		}
-		return *this;
-	}
-
-	template<typename BlockType>
-	typename Hierarchy<BlockType>::PreOrderHierarchyIterator& Hierarchy<BlockType>::PreOrderHierarchyIterator::operator--()
-	{
-		auto oldPosition = this->currentPosition_;
-		auto newPosition = this->currentPosition_->previousPosition_;
-		if (newPosition != nullptr) {
-			this->currentPosition_ = newPosition;
-			this->currentPosition_->visitedSonCount_ = 0;
-			this->currentPosition_->currentSonOrder_ = INVALID_INDEX;
-			this->currentPosition_->currentNodeProcessed_ = false;
-			delete oldPosition;
-		}
 		return *this;
 	}
 
@@ -531,7 +507,7 @@ namespace ds::amt {
 	}
 
 	template<typename BlockType>
-	Hierarchy<BlockType>::PostOrderHierarchyIterator::PostOrderHierarchyIterator(const PreOrderHierarchyIterator& other) :
+	Hierarchy<BlockType>::PostOrderHierarchyIterator::PostOrderHierarchyIterator(const PostOrderHierarchyIterator& other) :
 		Hierarchy<BlockType>::DepthFirstIterator::DepthFirstIterator(other)
 	{
 	}
@@ -539,18 +515,23 @@ namespace ds::amt {
 	template<typename BlockType>
 	typename Hierarchy<BlockType>::PostOrderHierarchyIterator& Hierarchy<BlockType>::PostOrderHierarchyIterator::operator++()
 	{
-		if (!this->currentPosition_->currentNodeProcessed_ && this->tryFindNextSonInCurrentPosition()) {
+		if (!this->currentPosition_->currentNodeProcessed_ && this->tryFindNextSonInCurrentPosition())
+		{
 			this->savePosition(this->currentPosition_->currentSon_);
 			++(*this);
 		}
-		else {
-			if (this->currentPosition_->currentNodeProcessed_) {
+		else
+		{
+			if (this->currentPosition_->currentNodeProcessed_)
+			{
 				this->removePosition();
-				if (this->currentPosition_ != nullptr) {
+				if (this->currentPosition_ != nullptr)
+				{
 					++(*this);
 				}
 			}
 		}
+
 		return *this;
 	}
 
@@ -682,24 +663,31 @@ namespace ds::amt {
 	template<typename BlockType>
 	typename BinaryHierarchy<BlockType>::InOrderHierarchyIterator& BinaryHierarchy<BlockType>::InOrderHierarchyIterator::operator++()
 	{
-		if (!this->currentPosition_->currentNodeProcessed_) {
-			if (this->currentPosition_->currentSonOrder_ != LEFT_SON_INDEX && this->tryToGoToLeftSonInCurrentPosition()) {
+		if (!this->currentPosition_->currentNodeProcessed_)
+		{
+			if (this->currentPosition_->currentSonOrder_ != LEFT_SON_INDEX && this->tryToGoToLeftSonInCurrentPosition())
+			{
 				this->savePosition(this->currentPosition_->currentSon_);
 				++(*this);
 			}
 		}
-		else {
-			if (this->currentPosition_->currentSonOrder_ != RIGHT_SON_INDEX && this->tryToGoToRightSonInCurrentPosition()) {
+		else
+		{
+			if (this->currentPosition_->currentSonOrder_ != RIGHT_SON_INDEX && this->tryToGoToRightSonInCurrentPosition())
+			{
 				this->savePosition(this->currentPosition_->currentSon_);
 				++(*this);
 			}
-			else {
+			else
+			{
 				this->removePosition();
-				if (this->currentPosition_ != nullptr) {
+				if (this->currentPosition_ != nullptr)
+				{
 					++(*this);
 				}
 			}
 		}
+
 		return *this;
 	}
 
