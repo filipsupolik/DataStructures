@@ -23,33 +23,32 @@ public:
 	{
 		subor.close();
 	};
-	Dopravca* vytvorZastavku()
+	Dopravca vytvorZastavku()
 	{
-		Dopravca* zastavka = new Dopravca();
+		Dopravca zastavka;
 		std::string hodnota;
 		std::stringstream riadokStream(aktualnyRiadok);
 		std::getline(riadokStream, hodnota, ';');
-		if (hodnota.empty()) return nullptr;
-		zastavka->stopId = std::stoi(hodnota);
+		zastavka.stopId = std::stoi(hodnota);
 
 		std::getline(riadokStream, hodnota, ';');
-		if (hodnota.empty()) return nullptr;
-		zastavka->street = hodnota;
+		zastavka.street = hodnota;
 
 		std::getline(riadokStream, hodnota, ';');
 		if (hodnota == "") {
-			zastavka->longitude = 0.0;
-			zastavka->latitude = 0.0;
+			zastavka.longitude = 0.0;
+			zastavka.latitude = 0.0;
 		}
 		else
 		{
-			zastavka->longitude = std::stod(hodnota);
+			zastavka.longitude = std::stod(hodnota);
 			std::getline(riadokStream, hodnota, ';');
-			zastavka->latitude = std::stod(hodnota);
+			zastavka.latitude = std::stod(hodnota);
 		}
 		std::getline(riadokStream, hodnota, ';');
-		if (hodnota.empty()) return nullptr;
-		zastavka->manicipality = hodnota;
+		zastavka.manicipality = hodnota;
+
+		zastavka.indexZastavky++;
 		return zastavka;
 	}
 

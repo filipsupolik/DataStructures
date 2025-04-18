@@ -27,6 +27,7 @@ public:
 	{
 		this->indexObce = other.indexObce;
 		this->indexUlice = other.indexUlice;
+		this->indexZastavky = other.indexZastavky;
 		this->stopId = other.stopId;
 		this->manicipality = other.manicipality;
 		this->street = other.street;
@@ -34,9 +35,9 @@ public:
 		this->longitude = other.longitude;
 	};
 
-	std::string FullNameBusStop()
+	std::string FullNameBusStop() const
 	{
-		return	+"\nStopId:\t\t" + std::to_string(this->stopId)
+		return	"\nStopId:\t\t" + std::to_string(this->stopId)
 				+ "\nObec:\t" + this->manicipality
 				+ "\nUlica:\t" + this->street
 				+ "\nZemepisna Sirka:\t" + std::to_string(this->latitude)
@@ -46,6 +47,7 @@ public:
 	std::string toString(size_t index = -1) const 
 	{
 		std::string vystup = " ";
+		std::string plneMeno = FullNameBusStop();
 		if (this->indexObce != -1)
 		{
 			return vystup + std::to_string(index) + ": \x1B[36m" + this->manicipality+ "\033[0m";
@@ -56,7 +58,7 @@ public:
 		}
 		else
 		{
-			return vystup + std::to_string(index) + ": \x1B[36m" + this->manicipality + "\033[0m";
+			return vystup + std::to_string(index) + ": \x1B[36m" + FullNameBusStop() + "\033[0m";
 		}
 	}
 };

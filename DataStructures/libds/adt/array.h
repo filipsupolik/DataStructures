@@ -154,14 +154,13 @@ namespace ds::adt {
     template<typename T>
     ADT& Array<T>::assign(const ADT& other)
     {
-		if (this != &other)
-		{
-			throw std::logic_error("Array can't be assigned!");
-		}
-		if (this->getSequence()->size() != other.size())
-		{
-			throw std::logic_error("Array sizes are different!");
-		}
+        const Array<T>& otherArray = dynamic_cast<const Array<T>&>(other);
+        if (base_ != otherArray.base_ || this->size() != otherArray.size())
+        {
+            throw std::logic_error("Array dimensions are different!");
+        }
+        ADS<T>::assign(other);
+        return *this;
     }
 
     template<typename T>
@@ -200,35 +199,34 @@ namespace ds::adt {
     template<typename T>
     T Array<T>::access(long long index) const
     {
-        if (this->validateIndex(index))
+        if (!this->validateIndex(index))
         {
-            throw structure_error("Invalid index");
+            throw std::out_of_range("Invalid index!");
         }
-		return this->getSequence()->access(this->mapIndex(index)).data_;
+        return this->getSequence()->access(this->mapIndex(index))->data_;
     }
 
     template<typename T>
     void Array<T>::set(T element, long long index)
     {
-        // TODO 08
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        if (!this->validateIndex(index))
+        {
+            throw std::out_of_range("Invalid index!");
+        }
+
+        this->getSequence()->access(this->mapIndex(index))->data_ = element;
     }
 
     template <typename T>
     auto Array<T>::begin() -> IteratorType
     {
-        // TODO 08
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        return this->getSequence()->begin();
     }
 
     template <typename T>
     auto Array<T>::end() -> IteratorType
     {
-        // TODO 08
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        return this->getSequence()->end();
     }
 
     template<typename T>
@@ -240,17 +238,13 @@ namespace ds::adt {
     template<typename T>
     bool Array<T>::validateIndex(long long index) const
     {
-        // TODO 08
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        return index >= base_ && index < base_ + static_cast<long long>(this->size());
     }
 
     template<typename T>
     size_t Array<T>::mapIndex(long long index) const
     {
-        // TODO 08
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        return index - base_;
     }
 
     //----------
@@ -263,7 +257,7 @@ namespace ds::adt {
 
     template<typename T>
     CompactMatrix<T>::CompactMatrix(Dimension dimension1, Dimension dimension2) :
-        ADS<T>(new amt::IS<T>(dimension1.getSize() * dimension2.getSize(), true)),
+        ADS<T>(new amt::IS<T>(dimension1.getSize()* dimension2.getSize(), true)),
         dimension1_(dimension1),
         dimension2_(dimension2)
     {

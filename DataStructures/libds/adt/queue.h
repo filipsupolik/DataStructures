@@ -174,25 +174,26 @@ namespace ds::adt {
     template<typename T>
     void ExplicitQueue<T>::push(T element)
     {
-        // TODO 09
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+		this->getSequence()->insertLast().data_ = element;
     }
 
     template<typename T>
     T& ExplicitQueue<T>::peek()
     {
-        // TODO 09
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+        auto* block = this->getSequence()->accessLast();
+        if (block == nullptr)
+        {
+            throw std::out_of_range("Stack is empty!");
+        })
+        return block.data_;
     }
 
     template<typename T>
     T ExplicitQueue<T>::pop()
     {
-        // TODO 09
-        // po implementacii vymazte vyhodenie vynimky!
-        throw std::runtime_error("Not implemented yet");
+		T poppedElement = peek();
+		this->getSequence()->removeFirst();
+		return poppedElement;
     }
 
     template<typename T>

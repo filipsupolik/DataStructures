@@ -135,20 +135,20 @@ namespace ds::adt {
     size_t GeneralList<T, SequenceType>::calculateIndex(T element)
     {
         size_t result = 0;
-        SequenceType::BlockType* block = this->getSequence()->findBlockWithProperty(
-			[&](SequenceType::BlockType* b)
+        typename SequenceType::BlockType* block = this->getSequence()->findBlockWithProperty(
+            [&](typename SequenceType::BlockType* b)
             {
-				if (b.data_ == element)
-				{
-					return true;
-				}
-				else
-				{
-					result++;
-					return false;
-				}
+                if (b->data_ == element)
+                {
+                    return true;
+                }
+                else
+                {
+                    result++;
+                    return false;
+                }
             });
-		return block != nullptr ? result - 1 : INVALID_INDEX;
+        return block != nullptr ? result : INVALID_INDEX;
     }
 
     template<typename T, typename SequenceType>
@@ -160,130 +160,118 @@ namespace ds::adt {
     template<typename T, typename SequenceType>
     T GeneralList<T, SequenceType>::accessFirst()
     {
-		auto* block = this->getSequence()->accessFirst();
+        typename SequenceType::BlockType* block = this->getSequence()->accessFirst();
+
         if (block == nullptr)
         {
-            throw structure_error("List is empty");
+            throw std::out_of_range("List is empty!");
         }
-        else
-        {
-			return block->data_;
-        }
+
+        return block->data_;
     }
 
     template<typename T, typename SequenceType>
     T GeneralList<T, SequenceType>::accessLast()
     {
-		auto* block = this->getSequence()->accessLast();
-		if (block == nullptr)
-		{
-			throw structure_error("List is empty");
-		}
-        else
+        typename SequenceType::BlockType* block = this->getSequence()->accessLast();
+
+        if (block == nullptr)
         {
-			return block->data_;
+            throw std::out_of_range("List is empty!");
         }
+
+        return block->data_;
     }
 
     template<typename T, typename SequenceType>
     T GeneralList<T, SequenceType>::access(size_t index)
     {
-        auto* block = this->getSequence()->access(index);
+        typename SequenceType::BlockType* block = this->getSequence()->access(index);
+
         if (block == nullptr)
         {
-            throw structure_error("Unknown index");
+            throw std::out_of_range("Invalid index!");
         }
-        else
-        {
-			return block->data_;
-        }
+
+        return block->data_;
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::insertFirst(T element)
     {
-		this->getSequence()->insertFirst().data_ = element;
+        this->getSequence()->insertFirst().data_ = element;
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::insertLast(T element)
     {
-		this->getSequence()->insertLast().data_ = element;
+        this->getSequence()->insertLast().data_ = element;
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::insert(T element, size_t index)
     {
-        if (index < 0 || index > size())
+        if (index > this->size())
         {
-			throw structure_error("Uknown index");
+            throw std::out_of_range("Invalid index!");
         }
-        else
-        {
-			this->getSequence()->insert(index).data_ = element;
-        }
+
+        this->getSequence()->insert(index).data_ = element;
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::set(size_t index, T element)
     {
-        if (index < 0 || index > size())
+        typename SequenceType::BlockType* block = this->getSequence()->access(index);
+
+        if (block == nullptr)
         {
-            throw structure_error("Uknown index");
+            throw std::out_of_range("Invalid index!");
         }
-        else
-        {
-            this->getSequence()->access(index).data_ = element;
-        }
+
+        block->data_ = element;
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::removeFirst()
     {
-		if (this->isEmpty())
-		{
-			throw structure_error("List is empty");
-		}
-		this->getSequence()->removeFirst();
+        if (this->isEmpty())
+        {
+            throw std::out_of_range("List is empty!");
+        }
+        this->getSequence()->removeFirst();
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::removeLast()
     {
-		auto* block = this->getSequence()->accessLast();
-        if (block == nullptr)
+        if (this->isEmpty())
         {
-            throw structure_error("List is empty");
+            throw std::out_of_range("List is empty!");
         }
-        else
-        {
-			this->getSequence()->removeLast();
-        }
+        this->getSequence()->removeLast();
     }
 
     template<typename T, typename SequenceType>
     void GeneralList<T, SequenceType>::remove(size_t index)
     {
-        if (index < 0 || index > size())
+        if (index >= this->size())
         {
-            throw structure_error("Uknown index");
+            throw std::out_of_range("Invalid index!");
         }
-        else
-        {
-            this->getSequence()->remove(index);
-        }
+        this->getSequence()->remove(index);
     }
 
     template <typename T, typename SequenceType>
     auto GeneralList<T, SequenceType>::begin() -> IteratorType
     {
-		this->getSequence()->begin();
+        return this->getSequence()->begin();
     }
 
     template <typename T, typename SequenceType>
     auto GeneralList<T, SequenceType>::end() -> IteratorType
     {
-		this->getSequence()->end();
+        return this->getSequence()->end();
     }
 
     template<typename T, typename SequenceType>

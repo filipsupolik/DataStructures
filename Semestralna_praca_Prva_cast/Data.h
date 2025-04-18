@@ -10,19 +10,19 @@ class Data
 protected:
 	bool koniecProgramu = false;
 	std::string nazovObce, castNazvuUice = "";
-	double minLong, minLat, maxLong, maxLat = 0.0;
+	double minLong, minLat, maxLong, maxLat, equal = 0.0;
 	std::string toLowerCase(const std::string& input) {
 		std::string result = input;
 		std::transform(result.begin(), result.end(), result.begin(),
 			[](unsigned char c) { return std::tolower(c); });
 		return result;
 	}
-	std::vector<Dopravca*> filtrovanyZoznam;
+	std::vector<Dopravca> filtrovanyZoznam;
 	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<Dopravca*>;
 	using SequenceBlockType = ds::amt::MemoryBlock<Dopravca*>;
 	using ZoznamObci = ds::amt::ImplicitSequence<Dopravca*>;
 	using ZoznamUlic = ds::amt::ImplicitSequence<Dopravca*>;
-	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca*>;
+	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca>;
 	ZoznamObci* zoznamObci = nullptr;
 	ZoznamUlic* zoznamUlic = nullptr;
 	ZoznamZastavok* zoznamZastavok = nullptr;
@@ -49,11 +49,6 @@ public:
 		}
 
 		this->zoznamZastavok = new ZoznamZastavok();
-		for (auto it = data.zoznamZastavok->begin(); it != data.zoznamZastavok->end(); ++it)
-		{
-			Dopravca* novaZastavka = new Dopravca(**it);
-			this->zoznamZastavok->insertLast().data_ = novaZastavka;
-		}
 	}
 	Data(std::string subor)
 	{
@@ -78,67 +73,43 @@ public:
 
 	void nacitajObceDoSekvencie()
 	{
+		size_t poradieObce = 0;
 		for (size_t i = 0; i < this->zoznamZastavok->size(); ++i)
 		{
-			std::string nacitavanyNazov = this->zoznamZastavok->access(i)->data_->manicipality;
+			std::string nacitavanyNazov = this->zoznamZastavok->access(i)->data_.manicipality;
 			if (zoznamObci->isEmpty())
 			{
 				zoznamObci->insertFirst().data_ = new Dopravca();
 				zoznamObci->accessFirst()->data_->manicipality =  nacitavanyNazov;
 			}
-			else
+			else if(zoznamObci->access(poradieObce)->data_->manicipality != nacitavanyNazov)
 			{
-				bool existuje = false;
-				for (auto it = zoznamObci->begin(); it != zoznamObci->end(); ++it)
-				{
-					Dopravca* obec = (*it);
-					if (obec->manicipality.substr(0, 3) == nacitavanyNazov.substr(0, 3))
-					{
-						existuje = true;
-						break;
-					}
-				}
-				if (!existuje)
-				{
-					zoznamObci->insertLast().data_ = new Dopravca();
-					zoznamObci->accessLast()->data_->manicipality = nacitavanyNazov;
-				}
+				zoznamObci->insertLast().data_ = new Dopravca();
+				zoznamObci->accessLast()->data_->manicipality = nacitavanyNazov;
+				poradieObce++;
 			}
-			//zoznamObci->processAllBlocksForward([&](std::string nacitavanyNazov) {
-				//});
 		}
 	}
 
 	void nacitajUliceDoSekvencie()
 	{
+		size_t poradieUlice = 0;
 		for (size_t i = 0; i < this->zoznamZastavok->size(); ++i)
 		{
-			std::string nacitavanyNazovUlice = this->zoznamZastavok->access(i)->data_->street;
-			std::string nacitavanyNazovObce = this->zoznamZastavok->access(i)->data_->manicipality;
+			std::string nacitavanyNazovUlice = this->zoznamZastavok->access(i)->data_.street;
+			std::string nacitavanyNazovObce = this->zoznamZastavok->access(i)->data_.manicipality;
 			if (zoznamUlic->isEmpty())
 			{
 				zoznamUlic->insertFirst().data_ = new Dopravca();
 				zoznamUlic->accessFirst()->data_->manicipality = nacitavanyNazovObce;
 				zoznamUlic->accessFirst()->data_->street = nacitavanyNazovUlice;
 			}
-			else
+			else if (zoznamUlic->access(poradieUlice)->data_->street != nacitavanyNazovUlice)
 			{
-				bool existuje = false;
-				for (auto it = zoznamUlic->begin(); it != zoznamUlic->end(); ++it)
-				{
-					Dopravca* ulica = (*it);
-					if (ulica->street == nacitavanyNazovUlice)
-					{
-						existuje = true;
-						break;
-					}
-				}
-				if (!existuje)
-				{
-					zoznamUlic->insertLast().data_ = new Dopravca();
-					zoznamUlic->accessLast()->data_->manicipality = nacitavanyNazovObce;
-					zoznamUlic->accessLast()->data_->street = nacitavanyNazovUlice;
-				}
+				zoznamUlic->insertLast().data_ = new Dopravca();
+				zoznamUlic->accessLast()->data_->manicipality = nacitavanyNazovObce;
+				zoznamUlic->accessLast()->data_->street = nacitavanyNazovUlice;
+				poradieUlice++;
 			}
 		}
 	}
@@ -187,16 +158,9 @@ private:
 		citac.preskocPrvyRiadok();
 		while (citac.citajRiadok()) 
 		{
-			Dopravca* novaZastavka = citac.vytvorZastavku();
-			if (novaZastavka == nullptr)
-			{
-				continue;
-			}
-			else
-			{
+			Dopravca novaZastavka = citac.vytvorZastavku();
 				this->zoznamZastavok->insertLast().data_ = novaZastavka;
 				pocetZastavok++;
-			}
 		}
 		std::cout << "Nacitalo sa " << pocetZastavok << " zastavok." << std::endl;
 	};

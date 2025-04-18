@@ -8,12 +8,31 @@ DruhaCast::DruhaCast(const Data& other) : Data(other)
 
 void DruhaCast::vytvorHierarchiu()
 {
-	hierarchy.emplaceRoot().data_ = new Dopravca();
-	hierarchy.accessRoot()->data_->manicipality = "Britsky narodny dopravca";
+    hierarchy.emplaceRoot().data_ = new Dopravca();
+    hierarchy.accessRoot()->data_->manicipality = "Britsky narodny dopravca";
+	auto* lastInserted = hierarchy.accessRoot();
+    for (auto it = this->zoznamZastavok->begin(); it != this->zoznamZastavok->end(); it++)
+    {
+        if (lastInserted->sons_ == nullptr || hierarchy.accessSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size())->data_->manicipality != (*it).manicipality)
+        {
+            auto& addedMunicipality = hierarchy.emplaceSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size());
+            addedMunicipality.data_ = new Dopravca();
+            addedMunicipality.data_->manicipality = (*it).manicipality;
+            addedMunicipality.data_->indexObce = hierarchy.accessRoot()->sons_->size();
 
-	NacitajObce();
-	NacitajUlice();
-	NacitajZastavky();
+            auto& addedStreet = hierarchy.emplaceSon(addedMunicipality, addedMunicipality.sons_->size());
+            addedStreet.data_ = new Dopravca();
+            addedStreet.data_->manicipality = (*it).manicipality;
+            addedStreet.data_->street = (*it).street;
+            addedStreet.data_->indexUlice = addedMunicipality.sons_->size();
+            lastInserted = &addedStreet;
+        }
+        else if (lastInserted->data_->street != (*it).street)
+        {
+            auto& parentOfStreet = *lastInserted->parent_;
+			auto& addedStreet = hierarchy.emplaceSon(parentOfStreet, parentOfStreet.sons_->size());
+        }
+    }
 }
 
 void DruhaCast::NacitajObce()
@@ -47,14 +66,15 @@ void DruhaCast::NacitajZastavky()
 	size_t poradiePridania = 0;
 	for (auto it = this->zoznamZastavok->begin(); it != this->zoznamZastavok->end(); ++it)
 	{
-		Dopravca* zastavka = (*it);
-		auto& aktualnaObec = DajObec(zastavka->manicipality);
-		auto& aktualnaUlica = DajUlicu(zastavka->manicipality, zastavka->street);
-		if (aktualnaUlica.data_->street == zastavka->street)
+		Dopravca zastavka = (*it);
+		auto& aktualnaObec = DajObec(zastavka.manicipality);
+		auto& aktualnaUlica = DajUlicu(zastavka.manicipality, zastavka.street);
+		if (aktualnaUlica.data_->street == zastavka.street)
 		{
 			auto& vrcholZastavka = hierarchy.emplaceSon(aktualnaUlica, aktualnaUlica.sons_->size());
+			vrcholZastavka.data_ = zastavka;
 		}
-		zastavka->indexZastavky = poradiePridania;
+		zastavka.indexZastavky = poradiePridania;
 		poradiePridania++;
 	}
 }
@@ -140,41 +160,104 @@ void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType*>* s
 
 void DruhaCast::FiltrujZoznamZastavok(ds::amt::Hierarchy<HierarchyBlockType>::PreOrderHierarchyIterator& it)
 {
+	++it;
 	using Vysledok = ds::amt::ImplicitSequence<Dopravca*>;
 	Vysledok vysledok;
-	char vstupZKlavesnice = this->vstupZKlavesnice();
-	zadajZoznamParametrov(vstupZKlavesnice);
-	std::function<bool(const Dopravca*)> jeVObci = [&](const Dopravca* zastavka) -> bool {
-		return toLowerCase(zastavka->manicipality) == this->nazovObce;
-		};
-
-	std::function<bool(const Dopravca*)> jeNaUlici = [&](const Dopravca* zastavka) -> bool {
-		return toLowerCase(zastavka->street).find(this->castNazvuUice) != std::string::npos;
-		};
-
-	std::function<bool(const Dopravca*)> jeVOblasti =
-		[&](const Dopravca* zastavka) {
-		return zastavka->latitude >= this->minLat
-			&& zastavka->latitude <= this->maxLat
-			&& zastavka->longitude >= this->minLong
-			&& zastavka->longitude <= this->maxLong;
-		};
+	char uroven;
+	std::cout << "Chcete filtrovat podla: [o]bce, [u]lice, [z]astavky\n";
+	std::cin >> uroven;
+	std::function<bool(const Dopravca*)> jeVObci = [&](const Dopravca* zastavka) -> bool {return toLowerCase(zastavka->manicipality) == this->nazovObce;};
+	std::function<bool(const Dopravca*)> jeNaUlici = [&](const Dopravca* zastavka) -> bool {return toLowerCase(zastavka->street).find(this->castNazvuUice) != std::string::npos;};
+	std::function<bool(const Dopravca*)> jeLatitudeVacsia = [&](const Dopravca* z) {return z->latitude > this->minLat;};
+	std::function<bool(const Dopravca*)> jeLatitudeMensia = [&](const Dopravca* z) {return z->latitude < this->maxLat;};
+	std::function<bool(const Dopravca*)> jeLatitudeRovna = [&](const Dopravca* z) {return z->latitude == this->minLat;};
+	std::function<bool(const Dopravca*)> jeLatitudeVacsiarovna = [&](const Dopravca* z) {return z->latitude >= this->minLat;};
+	std::function<bool(const Dopravca*)> jeLatitudeMensiarovna = [&](const Dopravca* z) {return z->latitude <= this->maxLat;};
+	std::function<bool(const Dopravca*)> jeLongitudeVacsia = [&](const Dopravca* z) {return z->longitude > this->minLong;};
+	std::function<bool(const Dopravca*)> jeLongitudeMensia = [&](const Dopravca* z) {return z->longitude < this->maxLong;};
+	std::function<bool(const Dopravca*)> jeLongitudeRovna = [&](const Dopravca* z) {return z->longitude == this->minLong;};
+	std::function<bool(const Dopravca*)> jeLongitudeVacsiarovna = [&](const Dopravca* z) {return z->longitude >= this->minLong;};
+	std::function<bool(const Dopravca*)> jeLongitudeMensiarovna = [&](const Dopravca* z) {return z->longitude <= this->maxLong;};
 
 
 	std::function<bool(const Dopravca*)> pouzivanyFilter;
-	switch (vstupZKlavesnice)
+	std::string operatorPorovnania;
+	char definiciaDlzkySirky;
+	if (uroven == 'o')
 	{
-	case 'o':
+		std::cout << "Zadajte cely nazov obce: ";
+		std::cin >> this->nazovObce;
 		pouzivanyFilter = jeVObci;
-		break;
-	case 'n':
+	}
+	else if (uroven == 'u')
+	{
+		std::cout << "Zadajte cast nazvu ulice: ";
+		std::cin >> this->castNazvuUice;
+		this->castNazvuUice = toLowerCase(this->castNazvuUice);
 		pouzivanyFilter = jeNaUlici;
-		break;
-	case 'g':
-		pouzivanyFilter = jeVOblasti;
-		break;
-	default:
-		break;
+	}
+	else
+	{
+		std::cout << "Zadajte operator porovnania(<,>,=, >=, <=): ";
+		std::cin >> operatorPorovnania;
+		std::cout << "[S]irka/[V]yska";
+		std::cin >> definiciaDlzkySirky;
+		if (definiciaDlzkySirky == 's') {
+			if (operatorPorovnania == "<") {
+				std::cout << "Zadajte maximalnu sirku: ";
+				std::cin >> this->maxLat;
+				pouzivanyFilter = jeLatitudeMensia;
+			}
+			else if (operatorPorovnania == ">") {
+				std::cout << "Zadajte minimalnu sirku: ";
+				std::cin >> this->minLat;
+				pouzivanyFilter = jeLatitudeVacsia;
+			}
+			else if (operatorPorovnania == "=") {
+				std::cout << "Zadajte sirku rovnu: ";
+				std::cin >> this->minLat;
+				this->maxLat = this->minLat;
+				pouzivanyFilter = jeLatitudeRovna;
+			}
+			else if (operatorPorovnania == ">=") {
+				std::cout << "Zadajte sirku vacsiu alebo rovnu: ";
+				std::cin >> this->minLat;
+				pouzivanyFilter = jeLatitudeVacsiarovna;
+			}
+			else if (operatorPorovnania == "<=") {
+				std::cout << "Zadajte sirku mensiu alebo rovnu: ";
+				std::cin >> this->maxLat;
+				pouzivanyFilter = jeLatitudeMensiarovna;
+			}
+		}
+		else {
+			if (operatorPorovnania == "<") {
+				std::cout << "Zadajte maximalnu dlzku: ";
+				std::cin >> this->maxLong;
+				pouzivanyFilter = jeLongitudeMensia;
+			}
+			else if (operatorPorovnania == ">") {
+				std::cout << "Zadajte minimalnu dlzku: ";
+				std::cin >> this->minLong;
+				pouzivanyFilter = jeLongitudeVacsia;
+			}
+			else if (operatorPorovnania == "=") {
+				std::cout << "Zadajte dlzku rovnu: ";
+				std::cin >> this->minLong;
+				this->maxLong = this->minLong;
+				pouzivanyFilter = jeLongitudeRovna;
+			}
+			else if (operatorPorovnania == ">=") {
+				std::cout << "Zadajte dlzku vacsiu alebo rovnu: ";
+				std::cin >> this->minLong;
+				pouzivanyFilter = jeLongitudeVacsiarovna;
+			}
+			else if (operatorPorovnania == "<=") {
+				std::cout << "Zadajte dlzku mensiu alebo rovnu: ";
+				std::cin >> this->maxLong;
+				pouzivanyFilter = jeLongitudeMensiarovna;
+			}
+		}
 	}
 
 	auto itBegin = ds::amt::MultiWayExplicitHierarchy<Dopravca*>::PreOrderHierarchyIterator(&hierarchy, &it.dajBlockType());
@@ -189,12 +272,17 @@ void DruhaCast::FiltrujZoznamZastavok(ds::amt::Hierarchy<HierarchyBlockType>::Pr
 			vystupnyZoznam.insertLast().data_ = hodnota;
 		}
 	);
+	--it;
+	for (size_t i = 0; i < vysledok.size(); i++)
+	{
+		std::cout << vysledok.access(i)->data_->street << std::endl;
+	};
 }
 
 bool DruhaCast::VstupOdUzivatela(ds::amt::Hierarchy<HierarchyBlockType>::PreOrderHierarchyIterator& it)
 {
 	std::string vstup;
-	std::cout << "Zadaj moznost [u] -- postup hore, [s] (index) -- zvol syna na indexe, [f](argument) (predicate) -- filtruj zastavky, [q] -- koniec:\n";
+	std::cout << "Zadaj moznost [u] -- postup hore, [s] (index) -- zvol syna na indexe, [f] -- filtruj zastavky, [q] -- koniec:\n";
 	std::cin >> vstup;
 	std::cin.ignore(256, '\n');
 
@@ -213,6 +301,7 @@ bool DruhaCast::VstupOdUzivatela(ds::amt::Hierarchy<HierarchyBlockType>::PreOrde
 		std::cin.ignore(256, '\n');
 	}
 	else if (vstup == "f") {
+
 		this->FiltrujZoznamZastavok(it);
 	}
 	else if (vstup == "q") {
