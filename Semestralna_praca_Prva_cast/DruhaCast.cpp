@@ -27,7 +27,7 @@ void DruhaCast::vytvorHierarchiu()
 			auto& addedNodeUlica = hierarchy.emplaceSon(parent, parent.sons_->size());
 			addedNodeUlica.data_ = NodeDopravca((*it).street, 2, parent.sons_->size());
         }
-		lastInserted->data_.zastavky.insertLast().data_ = &(*it);
+		lastInserted->data_.zastavky.insertLast().data_ = *it;
     }
 }
 
@@ -47,7 +47,7 @@ void DruhaCast::IteratorInterface()
 	}
 }
 
-void DruhaCast::VypisAktualnuPoziciuIteratora(NodeDopravca dp)
+void DruhaCast::VypisAktualnuPoziciuIteratora(NodeDopravca& dp)
 {
 	std::cout << "Aktualna pozicia: \x1B[32m" + dp.toString(dp.poradieNode_) << "\033[0m" << std::endl;
 }
@@ -67,28 +67,28 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 {
 	auto itHierarchyBegin = it;
 	auto itHierarchyEnd = DopravcaIterator(&hierarchy, nullptr);
-	using VysledokHladaniaVHierarchii = ds::amt::ImplicitSequence<NodeDopravca>;
-	using VysledokHladaniaVSekvencii = ds::amt::ImplicitSequence<Dopravca*>;
+	using VysledokHladaniaVHierarchii = ds::amt::ImplicitSequence<NodeDopravca&>;
+	using VysledokHladaniaVSekvencii = ds::amt::ImplicitSequence<Dopravca&>;
 	VysledokHladaniaVHierarchii vysledokH;
 	VysledokHladaniaVSekvencii vysledokS;
 	char uroven;
 	std::cout << "Chcete filtrovat podla: [u]lice, [z]astavky\n";
 	std::cin >> uroven;
-	std::function<bool(NodeDopravca*)> jeNaUlici = [&](NodeDopravca* zastavka) -> bool {return toLowerCase(zastavka->dataNode_).find(this->castNazvuUice) != std::string::npos;};
-	std::function<bool(const Dopravca*)> jeLatitudeVacsia = [&](const Dopravca* z) {return z->latitude > this->minLat;};
-	std::function<bool(const Dopravca*)> jeLatitudeMensia = [&](const Dopravca* z) {return z->latitude < this->maxLat;};
-	std::function<bool(const Dopravca*)> jeLatitudeRovna = [&](const Dopravca* z) {return z->latitude == this->minLat;};
-	std::function<bool(const Dopravca*)> jeLatitudeVacsiarovna = [&](const Dopravca* z) {return z->latitude >= this->minLat;};
-	std::function<bool(const Dopravca*)> jeLatitudeMensiarovna = [&](const Dopravca* z) {return z->latitude <= this->maxLat;};
-	std::function<bool(const Dopravca*)> jeLongitudeVacsia = [&](const Dopravca* z) {return z->longitude > this->minLong;};
-	std::function<bool(const Dopravca*)> jeLongitudeMensia = [&](const Dopravca* z) {return z->longitude < this->maxLong;};
-	std::function<bool(const Dopravca*)> jeLongitudeRovna = [&](const Dopravca* z) {return z->longitude == this->minLong;};
-	std::function<bool(const Dopravca*)> jeLongitudeVacsiarovna = [&](const Dopravca* z) {return z->longitude >= this->minLong;};
-	std::function<bool(const Dopravca*)> jeLongitudeMensiarovna = [&](const Dopravca* z) {return z->longitude <= this->maxLong;};
+	std::function<bool(const NodeDopravca&)> jeNaUlici = [&](const NodeDopravca& zastavka) -> bool {return toLowerCase(zastavka.dataNode_).find(this->castNazvuUice) != std::string::npos;};
+	std::function<bool(const Dopravca&)> jeLatitudeVacsia = [&](const Dopravca& z) {return z.latitude > this->minLat;};
+	std::function<bool(const Dopravca&)> jeLatitudeMensia = [&](const Dopravca& z) {return z.latitude < this->maxLat;};
+	std::function<bool(const Dopravca&)> jeLatitudeRovna = [&](const Dopravca& z) {return z.latitude == this->minLat;};
+	std::function<bool(const Dopravca&)> jeLatitudeVacsiarovna = [&](const Dopravca& z) {return z.latitude >= this->minLat;};
+	std::function<bool(const Dopravca&)> jeLatitudeMensiarovna = [&](const Dopravca& z) {return z.latitude <= this->maxLat;};
+	std::function<bool(const Dopravca&)> jeLongitudeVacsia = [&](const Dopravca& z) {return z.longitude > this->minLong;};
+	std::function<bool(const Dopravca&)> jeLongitudeMensia = [&](const Dopravca& z) {return z.longitude < this->maxLong;};
+	std::function<bool(const Dopravca&)> jeLongitudeRovna = [&](const Dopravca& z) {return z.longitude == this->minLong;};
+	std::function<bool(const Dopravca&)> jeLongitudeVacsiarovna = [&](const Dopravca& z) {return z.longitude >= this->minLong;};
+	std::function<bool(const Dopravca&)> jeLongitudeMensiarovna = [&](const Dopravca& z) {return z.longitude <= this->maxLong;};
 
 
-	std::function<bool(const Dopravca*)> pouzivanyFilterVSekvencii;
-	std::function<bool(NodeDopravca*)> pouzivanyFilterVHierarchii;
+	std::function<bool(const Dopravca&)> pouzivanyFilterVSekvencii;
+	std::function<bool(const NodeDopravca&)> pouzivanyFilterVHierarchii;
 	std::string operatorPorovnania;
 	char definiciaDlzkySirky;
 	if (uroven == 'u')
@@ -102,7 +102,7 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 			itHierarchyEnd,
 			pouzivanyFilterVHierarchii,
 			vysledokH,
-			[&](ds::amt::ImplicitSequence<NodeDopravca>& vystupnyZoznam, NodeDopravca hodnota) {
+			[&](ds::amt::ImplicitSequence<NodeDopravca&>& vystupnyZoznam, NodeDopravca& hodnota) {
 				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);
@@ -178,7 +178,7 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 			(*it).getZastavky().end(),
 			pouzivanyFilterVSekvencii,
 			vysledokS,
-			[&](ds::amt::ImplicitSequence<Dopravca*> vystupnyZoznam, Dopravca* hodnota) {
+			[&](ds::amt::ImplicitSequence<Dopravca&>& vystupnyZoznam, Dopravca hodnota) {
 				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);

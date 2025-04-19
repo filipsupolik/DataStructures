@@ -72,7 +72,7 @@ namespace ds::amt {
 
 		MultiWayExplicitHierarchy();
 		MultiWayExplicitHierarchy(const MultiWayExplicitHierarchy& other);
-		~MultiWayExplicitHierarchy();
+		~MultiWayExplicitHierarchy() override;
 
 		size_t degree(const BlockType& node) const override;
 
@@ -111,7 +111,7 @@ namespace ds::amt {
 
 		KWayExplicitHierarchy();
 		KWayExplicitHierarchy(const KWayExplicitHierarchy& other);
-		~KWayExplicitHierarchy();
+		~KWayExplicitHierarchy() override;
 
 		size_t degree(const BlockType& node) const override;
 
@@ -151,7 +151,7 @@ namespace ds::amt {
 
 		BinaryExplicitHierarchy();
 		BinaryExplicitHierarchy(const BinaryExplicitHierarchy& other);
-		~BinaryExplicitHierarchy();
+		~BinaryExplicitHierarchy() override;
 
 		size_t degree(const BlockType& node) const override;
 
@@ -208,7 +208,7 @@ namespace ds::amt {
 			{
 				myBlock->data_ = otherBlock->data_;
 
-				size_t sonCount = otherHierarchy.degree(*otherBlock);
+				const size_t sonCount = otherHierarchy.degree(*otherBlock);
 				size_t copiedSonCount = 0;
 				size_t sonIndex = 0;
 				while (copiedSonCount < sonCount)

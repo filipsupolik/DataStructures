@@ -5,8 +5,8 @@
 class DruhaCast: public Data
 {
 private:
-	using Hierarchy = ds::amt::MultiWayExplicitHierarchy<NodeDopravca>;
-	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<NodeDopravca>*;
+	using Hierarchy = ds::amt::MultiWayExplicitHierarchy<NodeDopravca&>;
+	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<NodeDopravca&>*;
 	Hierarchy hierarchy;
 	class DopravcaIterator : public Hierarchy::PreOrderHierarchyIterator
 	{
@@ -50,7 +50,7 @@ public:
 	DruhaCast(const Data& data);
 	void vytvorHierarchiu();
 	void IteratorInterface();
-	void VypisAktualnuPoziciuIteratora(NodeDopravca dp);
+	void VypisAktualnuPoziciuIteratora(NodeDopravca& dp);
 	void VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType>* sons);
 	void FiltrujZoznamZastavok(DopravcaIterator& it);
 	bool VstupOdUzivatela(DopravcaIterator& it);
