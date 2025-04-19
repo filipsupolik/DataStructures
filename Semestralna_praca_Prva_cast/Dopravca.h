@@ -34,4 +34,44 @@ public:
 				+ "\nZemepisna Sirka:\t" + std::to_string(this->latitude)
 				+ "\nZemepisna Dlzka:\t\t" + std::to_string(this->longitude);
 	};
+
+	bool jeLatitudeVacsia(double minLat) {
+		return this->latitude > minLat;
+	}
+
+	bool jeLatitudeMensia(double maxLat) {
+		return this->latitude < maxLat;
+	}
+
+	bool jeLatitudeRovna(double lat) {
+		return this->latitude == lat;
+	}
+
+	bool jeLatitudeVacsiarovna(double minLat) {
+		return this->latitude >= minLat;
+	}
+
+	bool jeLatitudeMensiarovna(double maxLat) {
+		return this->latitude <= maxLat;
+	}
+
+	bool jeLongitudeVacsia(double minLong) {
+		return this->longitude > minLong;
+	}
+
+	bool jeLongitudeMensia(double maxLong) {
+		return this->longitude < maxLong;
+	}
+
+	bool jeLongitudeRovna(double lon) {
+		return this->longitude == lon;
+	}
+
+	bool jeLongitudeVacsiarovna(double minLong) {
+		return this->longitude >= minLong;
+	}
+
+	bool jeLongitudeMensiarovna(double maxLong) {
+		return this->longitude <= maxLong;
+	}
 };

@@ -19,7 +19,6 @@ protected:
 		return result;
 	}
 	std::vector<Dopravca> filtrovanyZoznam;
-	using HierarchyBlockType = ds::amt::MultiWayExplicitHierarchyBlock<NodeDopravca>;
 	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca>;
 	ZoznamZastavok* zoznamZastavok = nullptr;
 

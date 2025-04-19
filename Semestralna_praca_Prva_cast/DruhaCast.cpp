@@ -52,7 +52,7 @@ void DruhaCast::VypisAktualnuPoziciuIteratora(NodeDopravca dp)
 	std::cout << "Aktualna pozicia: \x1B[32m" + dp.toString(dp.poradieNode_) << "\033[0m" << std::endl;
 }
 
-void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType*>* sons)
+void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType>* sons)
 {
 	size_t indexSyna = 0;
 	std::cout << "Synovia aktualnej pozicie dopravcu: \n";
@@ -65,12 +65,16 @@ void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType*>* s
 
 void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 {
-	using Vysledok = ds::amt::ImplicitSequence<Dopravca*>;
-	Vysledok vysledok;
+	auto itHierarchyBegin = it;
+	auto itHierarchyEnd = DopravcaIterator(&hierarchy, nullptr);
+	using VysledokHladaniaVHierarchii = ds::amt::ImplicitSequence<NodeDopravca>;
+	using VysledokHladaniaVSekvencii = ds::amt::ImplicitSequence<Dopravca*>;
+	VysledokHladaniaVHierarchii vysledokH;
+	VysledokHladaniaVSekvencii vysledokS;
 	char uroven;
 	std::cout << "Chcete filtrovat podla: [u]lice, [z]astavky\n";
 	std::cin >> uroven;
-	std::function<bool(const NodeDopravca*)> jeNaUlici = [&](const NodeDopravca* zastavka) -> bool {return toLowerCase(zastavka->dataNode_).find(this->castNazvuUice) != std::string::npos;};
+	std::function<bool(NodeDopravca*)> jeNaUlici = [&](NodeDopravca* zastavka) -> bool {return toLowerCase(zastavka->dataNode_).find(this->castNazvuUice) != std::string::npos;};
 	std::function<bool(const Dopravca*)> jeLatitudeVacsia = [&](const Dopravca* z) {return z->latitude > this->minLat;};
 	std::function<bool(const Dopravca*)> jeLatitudeMensia = [&](const Dopravca* z) {return z->latitude < this->maxLat;};
 	std::function<bool(const Dopravca*)> jeLatitudeRovna = [&](const Dopravca* z) {return z->latitude == this->minLat;};
@@ -83,21 +87,29 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 	std::function<bool(const Dopravca*)> jeLongitudeMensiarovna = [&](const Dopravca* z) {return z->longitude <= this->maxLong;};
 
 
-	std::function<bool(const Dopravca*)> pouzivanyFilter;
+	std::function<bool(const Dopravca*)> pouzivanyFilterVSekvencii;
+	std::function<bool(NodeDopravca*)> pouzivanyFilterVHierarchii;
 	std::string operatorPorovnania;
 	char definiciaDlzkySirky;
-	if (uroven == 'o')
-	{
-		std::cout << "Zadajte cely nazov obce: ";
-		std::cin >> this->nazovObce;
-		pouzivanyFilter = jeVObci;
-	}
-	else if (uroven == 'u')
+	if (uroven == 'u')
 	{
 		std::cout << "Zadajte cast nazvu ulice: ";
 		std::cin >> this->castNazvuUice;
 		this->castNazvuUice = toLowerCase(this->castNazvuUice);
-		pouzivanyFilter = jeNaUlici;
+		pouzivanyFilterVHierarchii = jeNaUlici;
+		Algorithm::findAndInsertElement(
+			itHierarchyBegin,
+			itHierarchyEnd,
+			pouzivanyFilterVHierarchii,
+			vysledokH,
+			[&](ds::amt::ImplicitSequence<NodeDopravca>& vystupnyZoznam, NodeDopravca hodnota) {
+				vystupnyZoznam.insertLast().data_ = hodnota;
+			}
+		);
+		for (size_t i = 0; i < vysledokH.size(); i++)
+		{
+			vysledokH.access(i)->data_.vypisZastavky();
+		};
 	}
 	else
 	{
@@ -109,81 +121,72 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 			if (operatorPorovnania == "<") {
 				std::cout << "Zadajte maximalnu sirku: ";
 				std::cin >> this->maxLat;
-				pouzivanyFilter = jeLatitudeMensia;
+				pouzivanyFilterVSekvencii = jeLatitudeMensia;
 			}
 			else if (operatorPorovnania == ">") {
 				std::cout << "Zadajte minimalnu sirku: ";
 				std::cin >> this->minLat;
-				pouzivanyFilter = jeLatitudeVacsia;
+				pouzivanyFilterVSekvencii = jeLatitudeVacsia;
 			}
 			else if (operatorPorovnania == "=") {
 				std::cout << "Zadajte sirku rovnu: ";
 				std::cin >> this->minLat;
 				this->maxLat = this->minLat;
-				pouzivanyFilter = jeLatitudeRovna;
+				pouzivanyFilterVSekvencii = jeLatitudeRovna;
 			}
 			else if (operatorPorovnania == ">=") {
 				std::cout << "Zadajte sirku vacsiu alebo rovnu: ";
 				std::cin >> this->minLat;
-				pouzivanyFilter = jeLatitudeVacsiarovna;
+				pouzivanyFilterVSekvencii = jeLatitudeVacsiarovna;
 			}
 			else if (operatorPorovnania == "<=") {
 				std::cout << "Zadajte sirku mensiu alebo rovnu: ";
 				std::cin >> this->maxLat;
-				pouzivanyFilter = jeLatitudeMensiarovna;
+				pouzivanyFilterVSekvencii = jeLatitudeMensiarovna;
 			}
 		}
 		else {
 			if (operatorPorovnania == "<") {
 				std::cout << "Zadajte maximalnu dlzku: ";
 				std::cin >> this->maxLong;
-				pouzivanyFilter = jeLongitudeMensia;
+				pouzivanyFilterVSekvencii = jeLongitudeMensia;
 			}
 			else if (operatorPorovnania == ">") {
 				std::cout << "Zadajte minimalnu dlzku: ";
 				std::cin >> this->minLong;
-				pouzivanyFilter = jeLongitudeVacsia;
+				pouzivanyFilterVSekvencii = jeLongitudeVacsia;
 			}
 			else if (operatorPorovnania == "=") {
 				std::cout << "Zadajte dlzku rovnu: ";
 				std::cin >> this->minLong;
 				this->maxLong = this->minLong;
-				pouzivanyFilter = jeLongitudeRovna;
+				pouzivanyFilterVSekvencii = jeLongitudeRovna;
 			}
 			else if (operatorPorovnania == ">=") {
 				std::cout << "Zadajte dlzku vacsiu alebo rovnu: ";
 				std::cin >> this->minLong;
-				pouzivanyFilter = jeLongitudeVacsiarovna;
+				pouzivanyFilterVSekvencii = jeLongitudeVacsiarovna;
 			}
 			else if (operatorPorovnania == "<=") {
 				std::cout << "Zadajte dlzku mensiu alebo rovnu: ";
 				std::cin >> this->maxLong;
-				pouzivanyFilter = jeLongitudeMensiarovna;
+				pouzivanyFilterVSekvencii = jeLongitudeMensiarovna;
 			}
 		}
+		Algorithm::findAndInsertElement(
+			(*it).getZastavky().begin(),
+			(*it).getZastavky().end(),
+			pouzivanyFilterVSekvencii,
+			vysledokS,
+			[&](ds::amt::ImplicitSequence<Dopravca*> vystupnyZoznam, Dopravca* hodnota) {
+				vystupnyZoznam.insertLast().data_ = hodnota;
+			}
+		);
+		for (size_t i = 0; i < vysledokH.size(); i++)
+		{
+			vysledokH.access(i)->data_.vypisZastavky();
+		};
 	}
-
-	ds::amt::ImplicitSequence<>::;
-	if ((*it).indexUrovne_ == 2)
-	{
-		auto itBegin = (*it).zastavky.begin();
-	}
-	auto itBegin = it.dajSynov()->begin();
-	auto itEnd = it.dajSynov()->end();
-
-	Algorithm::findAndInsertElement(
-		itBegin,
-		itEnd,
-		pouzivanyFilter,
-		vysledok,
-		[&]( auto& vystupnyZoznam, auto hodnota) {
-			vystupnyZoznam.insertLast().data_ = hodnota;
-		}
-	);
-	for (size_t i = 0; i < vysledok.size(); i++)
-	{
-		std::cout << vysledok.access(i)->data_->street << std::endl;
-	};
 }
 
 bool DruhaCast::VstupOdUzivatela(DopravcaIterator& it)
@@ -208,7 +211,6 @@ bool DruhaCast::VstupOdUzivatela(DopravcaIterator& it)
 		std::cin.ignore(256, '\n');
 	}
 	else if (vstup == "f") {
-
 		this->FiltrujZoznamZastavok(it);
 	}
 	else if (vstup == "q") {
