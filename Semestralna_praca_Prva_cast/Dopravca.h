@@ -28,50 +28,19 @@ public:
 
 	std::string FullNameBusStop() const
 	{
-		return	"\nStopId:\t\t" + std::to_string(this->stopId)
-				+ "\nObec:\t" + this->manicipality
-				+ "\nUlica:\t" + this->street
-				+ "\nZemepisna Sirka:\t" + std::to_string(this->latitude)
-				+ "\nZemepisna Dlzka:\t\t" + std::to_string(this->longitude);
-	};
+		const std::string green = "\033[32m";
+		const std::string reset = "\033[0m";
 
-	bool jeLatitudeVacsia(double minLat) {
-		return this->latitude > minLat;
-	}
+		std::ostringstream oss;
+		oss << green;
+		oss << std::left
+			<< std::setw(22) << "StopId:" << this->stopId << "\n"
+			<< std::setw(22) << "Obec:" << this->manicipality << "\n"
+			<< std::setw(22) << "Ulica:" << this->street << "\n"
+			<< std::setw(22) << "Zemepisna Sirka:" << this->latitude << "\n"
+			<< std::setw(22) << "Zemepisna Dlzka:" << this->longitude << "\n";
+		oss << reset;
 
-	bool jeLatitudeMensia(double maxLat) {
-		return this->latitude < maxLat;
-	}
-
-	bool jeLatitudeRovna(double lat) {
-		return this->latitude == lat;
-	}
-
-	bool jeLatitudeVacsiarovna(double minLat) {
-		return this->latitude >= minLat;
-	}
-
-	bool jeLatitudeMensiarovna(double maxLat) {
-		return this->latitude <= maxLat;
-	}
-
-	bool jeLongitudeVacsia(double minLong) {
-		return this->longitude > minLong;
-	}
-
-	bool jeLongitudeMensia(double maxLong) {
-		return this->longitude < maxLong;
-	}
-
-	bool jeLongitudeRovna(double lon) {
-		return this->longitude == lon;
-	}
-
-	bool jeLongitudeVacsiarovna(double minLong) {
-		return this->longitude >= minLong;
-	}
-
-	bool jeLongitudeMensiarovna(double maxLong) {
-		return this->longitude <= maxLong;
+		return oss.str();
 	}
 };

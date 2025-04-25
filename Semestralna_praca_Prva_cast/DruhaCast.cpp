@@ -8,27 +8,37 @@ DruhaCast::DruhaCast(const Data& other) : Data(other)
 
 void DruhaCast::vytvorHierarchiu()
 {
-    hierarchy.emplaceRoot().data_ = NodeDopravca();
-    hierarchy.accessRoot()->data_.dataNode_ = "Britsky narodny dopravca";
-	auto* lastInserted = hierarchy.accessRoot();
-    for (auto it = this->zoznamZastavok->begin(); it != this->zoznamZastavok->end(); it++)
-    {
-        if (lastInserted->sons_ == nullptr || hierarchy.accessSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size())->data_.dataNode_ != (*it).manicipality)
-        {
-			auto& addedNodeObec = hierarchy.emplaceSon(*hierarchy.accessRoot(), hierarchy.accessRoot()->sons_->size());
-			addedNodeObec.data_ = NodeDopravca((*it).manicipality, 1, hierarchy.accessRoot()->sons_->size());
-			auto& addedNodeUlica = hierarchy.emplaceSon(addedNodeObec, addedNodeObec.sons_->size());
-			addedNodeUlica.data_ = NodeDopravca((*it).street, 2, addedNodeObec.sons_->size());
-			lastInserted = &addedNodeUlica;
-        }
-        else if (lastInserted->data_.dataNode_ != (*it).street)
-        {
-			auto& parent = *hierarchy.accessParent(*lastInserted);
-			auto& addedNodeUlica = hierarchy.emplaceSon(parent, parent.sons_->size());
-			addedNodeUlica.data_ = NodeDopravca((*it).street, 2, parent.sons_->size());
-        }
-		lastInserted->data_.zastavky.insertLast().data_ = *it;
-    }
+	auto& root = hierarchy.emplaceRoot();
+	root.data_ = NodeDopravca("Britsky narodny dopravca", 0, 0);
+
+	HierarchyBlockType lastObec = nullptr;
+	HierarchyBlockType lastUlica = nullptr;
+
+	for (auto it = zoznamZastavok->begin(); it != zoznamZastavok->end(); ++it)
+	{
+		const std::string& obec = (*it).manicipality;
+		const std::string& ulica = (*it).street;
+
+		if (!lastObec || lastObec->data_.dataNode_ != obec)
+		{
+			auto& novaObec = hierarchy.emplaceSon(root, root.sons_->size());
+			novaObec.data_ = NodeDopravca(obec, 1, root.sons_->size());
+			lastObec = &novaObec;
+
+			auto& novaUlica = hierarchy.emplaceSon(novaObec, 0);
+			novaUlica.data_ = NodeDopravca(ulica, 2, 0);
+			lastUlica = &novaUlica;
+		}
+		else if (!lastUlica || lastUlica->data_.dataNode_ != ulica)
+		{
+			auto& novaUlica = hierarchy.emplaceSon(*lastObec, lastObec->sons_->size());
+			novaUlica.data_ = NodeDopravca(ulica, 2, lastObec->sons_->size());
+			lastUlica = &novaUlica;
+		}
+
+
+		lastUlica->data_.getZastavky()->insertLast().data_ = (*it);
+	}
 }
 
 void DruhaCast::IteratorInterface()
@@ -36,8 +46,8 @@ void DruhaCast::IteratorInterface()
 	auto iteratorDopredu = DopravcaIterator(&hierarchy, hierarchy.accessRoot());
 	this->VypisAktualnuPoziciuIteratora(*iteratorDopredu);
 	while (true) {
-		
-		this->VypisSynovNaAktualnejPozicii(iteratorDopredu.dajSynov());
+
+		this->VypisSynovNaAktualnejPozicii(iteratorDopredu);
 
 		if (this->VstupOdUzivatela(iteratorDopredu)) {
 			break;
@@ -52,14 +62,41 @@ void DruhaCast::VypisAktualnuPoziciuIteratora(NodeDopravca& dp)
 	std::cout << "Aktualna pozicia: \x1B[32m" + dp.toString(dp.poradieNode_) << "\033[0m" << std::endl;
 }
 
-void DruhaCast::VypisSynovNaAktualnejPozicii(ds::amt::IS<HierarchyBlockType>* sons)
+void DruhaCast::VypisSynovNaAktualnejPozicii(DopravcaIterator& dp)
 {
-	size_t indexSyna = 0;
-	std::cout << "Synovia aktualnej pozicie dopravcu: \n";
+	if ((*dp).indexUrovne_ != 2)
+	{
+		size_t indexSyna = 0;
+		std::cout << "Synovia aktualnej pozicie dopravcu: \n";
 
-	for (auto it = sons->begin(); it != sons->end(); ++it) {
-		std::cout << (*it)->data_.toString(indexSyna) << std::endl;
-		++indexSyna;
+		for (auto it = dp.dajSynov()->begin(); it != dp.dajSynov()->end(); ++it) {
+			std::cout << (*it)->data_.toString(indexSyna) << std::endl;
+			++indexSyna;
+		}
+	}
+	else
+	{
+		size_t indexSyna = 0;
+		std::cout << "Zastavky na aktualnej ulici: \n";
+
+		VypisZastavkyNaAkutalnejPozicii(*dp);
+	}
+}
+
+void DruhaCast::VypisZastavkyNaAkutalnejPozicii(NodeDopravca& dp)
+{
+	size_t indexZastavky = 0;
+	auto zastavky = dp.getZastavky();
+	if (zastavky != nullptr)
+	{
+		for (auto it = zastavky->begin(); it != zastavky->end(); ++it) {
+			std::cout << (*it).FullNameBusStop() << std::endl;
+			indexZastavky;
+		}
+	}
+	else
+	{
+		std::cout << "Na tejto ulice nie su ziadne zastavky\n";
 	}
 }
 
@@ -67,8 +104,8 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 {
 	auto itHierarchyBegin = it;
 	auto itHierarchyEnd = DopravcaIterator(&hierarchy, nullptr);
-	using VysledokHladaniaVHierarchii = ds::amt::ImplicitSequence<NodeDopravca&>;
-	using VysledokHladaniaVSekvencii = ds::amt::ImplicitSequence<Dopravca&>;
+	using VysledokHladaniaVHierarchii = ds::amt::ImplicitSequence<NodeDopravca>;
+	using VysledokHladaniaVSekvencii = ds::amt::ImplicitSequence<Dopravca>;
 	VysledokHladaniaVHierarchii vysledokH;
 	VysledokHladaniaVSekvencii vysledokS;
 	char uroven;
@@ -102,7 +139,7 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 			itHierarchyEnd,
 			pouzivanyFilterVHierarchii,
 			vysledokH,
-			[&](ds::amt::ImplicitSequence<NodeDopravca&>& vystupnyZoznam, NodeDopravca& hodnota) {
+			[&](ds::amt::ImplicitSequence<NodeDopravca>& vystupnyZoznam, NodeDopravca& hodnota) {
 				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);
@@ -174,11 +211,11 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 			}
 		}
 		Algorithm::findAndInsertElement(
-			(*it).getZastavky().begin(),
-			(*it).getZastavky().end(),
+			(*it).getZastavky()->begin(),
+			(*it).getZastavky()->end(),
 			pouzivanyFilterVSekvencii,
 			vysledokS,
-			[&](ds::amt::ImplicitSequence<Dopravca&>& vystupnyZoznam, Dopravca hodnota) {
+			[&](ds::amt::ImplicitSequence<Dopravca>& vystupnyZoznam, Dopravca hodnota) {
 				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);

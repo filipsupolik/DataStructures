@@ -23,32 +23,37 @@ public:
 	{
 		subor.close();
 	};
-	Dopravca vytvorZastavku()
+	bool vytvorZastavku(Dopravca& zastavka)
 	{
-		Dopravca zastavka;
 		std::string hodnota;
 		std::stringstream riadokStream(aktualnyRiadok);
+
+		// stopId
 		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return false;
 		zastavka.stopId = std::stoi(hodnota);
 
+		// street
 		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return false;
 		zastavka.street = hodnota;
 
+		// longitude
 		std::getline(riadokStream, hodnota, ';');
-		if (hodnota == "") {
-			zastavka.longitude = 0.0;
-			zastavka.latitude = 0.0;
-		}
-		else
-		{
-			zastavka.longitude = std::stod(hodnota);
-			std::getline(riadokStream, hodnota, ';');
-			zastavka.latitude = std::stod(hodnota);
-		}
+		if (hodnota.empty()) return false;
+		zastavka.longitude = std::stod(hodnota);
+
+		// latitude
 		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return false;
+		zastavka.latitude = std::stod(hodnota);
+
+		// manicipality
+		std::getline(riadokStream, hodnota, ';');
+		if (hodnota.empty()) return false;
 		zastavka.manicipality = hodnota;
 
-		return zastavka;
+		return true;
 	}
 
 	void preskocPrvyRiadok()

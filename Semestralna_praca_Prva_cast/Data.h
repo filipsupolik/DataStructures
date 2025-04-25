@@ -12,16 +12,16 @@ protected:
 	bool koniecProgramu = false;
 	std::string nazovObce, castNazvuUice = "";
 	double minLong, minLat, maxLong, maxLat, equal = 0.0;
+	std::vector<Dopravca> filtrovanyZoznam;
+	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca>;
+	ZoznamZastavok* zoznamZastavok = nullptr;
+
 	std::string toLowerCase(const std::string& input) {
 		std::string result = input;
 		std::transform(result.begin(), result.end(), result.begin(),
 			[](unsigned char c) { return std::tolower(c); });
 		return result;
 	}
-	std::vector<Dopravca> filtrovanyZoznam;
-	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca>;
-	ZoznamZastavok* zoznamZastavok = nullptr;
-
 public:
 	Data();
 	Data(const Data& data)
@@ -77,18 +77,22 @@ public:
 		return vstup;
 	}
 private:
-	void nacitajZastavku(std::string subor) 
+	void nacitajZastavku(std::string subor)
 	{
 		size_t pocetZastavok = 0;
 		Citac citac(subor);
 		citac.preskocPrvyRiadok();
-		while (citac.citajRiadok()) 
+
+		while (citac.citajRiadok())
 		{
-			Dopravca novaZastavka = citac.vytvorZastavku();
+			Dopravca novaZastavka;
+			if (citac.vytvorZastavku(novaZastavka))
+			{
 				this->zoznamZastavok->insertLast().data_ = novaZastavka;
 				pocetZastavok++;
+			}
 		}
-		std::cout << "Nacitalo sa " << pocetZastavok << " zastavok." << std::endl;
-	};
+		std::cout << "Nacitalo sa " << pocetZastavok << " platnych zastavok." << std::endl;
+	}
 };
 
