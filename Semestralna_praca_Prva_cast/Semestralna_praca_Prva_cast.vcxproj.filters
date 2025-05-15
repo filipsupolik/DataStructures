@@ -47,5 +47,11 @@
     <ClInclude Include="NodeDopravca.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TretiaCast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StvrtaCast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

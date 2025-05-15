@@ -147,6 +147,8 @@
     <ClInclude Include="Semestralna_praca_Prva_cast.h" />
     <ClInclude Include="PrvaCast.h" />
     <ClInclude Include="Dopravca.h" />
+    <ClInclude Include="StvrtaCast.h" />
+    <ClInclude Include="TretiaCast.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

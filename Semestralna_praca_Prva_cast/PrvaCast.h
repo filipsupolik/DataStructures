@@ -14,15 +14,15 @@ class PrvaCast: public Data
 {
 public:
 	PrvaCast(Data& data) : Data(data) {};
-	void spustiFilter(const std::string& vstupnySubor) 
+	void spustiFilter() 
 	{
 		char nacitajVstup = vstupZKlavesnice();
 		zadajZoznamParametrov(nacitajVstup);
-		filtrujZoznam(*zoznamZastavok, filtrovanyZoznam, nacitajVstup);
+		filtrujZoznam(*zoznamZastavok, *filtrovanyZoznam, nacitajVstup);
 		vypisZastavky();
 	}
 
-	void filtrujZoznam(ZoznamZastavok vstupnyZoznam, std::vector<Dopravca>& vystupnyZoznam, const char typFiltru)
+	void filtrujZoznam(ZoznamZastavok& vstupnyZoznam, ZoznamZastavok& vystupnyZoznam, const char typFiltru)
 	{
 		std::function<bool(const Dopravca)> jeVObci = [&](const Dopravca zastavka) -> bool {
 			return toLowerCase(zastavka.manicipality) == this->nazovObce;
@@ -62,16 +62,16 @@ public:
 			vstupnyZoznam.end(),
 			pouzivanyFilter,
 			vystupnyZoznam,
-			[&](std::vector<Dopravca>& vystupnyZoznam, Dopravca hodnota) {
-				vystupnyZoznam.push_back(hodnota);
+			[&](ZoznamZastavok vystupnyZoznam, Dopravca hodnota) {
+				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);
 	}
 	void vypisZastavky()
 	{
-		for (size_t i = 0; i < filtrovanyZoznam.size(); ++i)
+		for (size_t i = 0; i < filtrovanyZoznam->size(); ++i)
 		{
-			std::cout << filtrovanyZoznam[i].stopId << ", " << filtrovanyZoznam[i].street << ", " << filtrovanyZoznam[i].manicipality << std::endl;
+			std::cout << filtrovanyZoznam->access(i)->data_.stopId << ", " << filtrovanyZoznam->access(i)->data_.street << ", " << filtrovanyZoznam->access(i)->data_.manicipality << std::endl;
 		}
 	}
 

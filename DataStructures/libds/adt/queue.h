@@ -184,8 +184,8 @@ namespace ds::adt {
         if (block == nullptr)
         {
             throw std::out_of_range("Stack is empty!");
-        })
-        return block.data_;
+        }
+        return (*block).data_;
     }
 
     template<typename T>

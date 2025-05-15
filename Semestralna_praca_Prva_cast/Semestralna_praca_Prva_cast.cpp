@@ -7,8 +7,10 @@
 #include <Windows.h>
 #include <iostream>
 #include <string>
+#include "TretiaCast.h"
 int main()
 {
+	initHeapMonitor();
 	SetConsoleOutputCP(1250);
 	SetConsoleCP(1250);
 
@@ -16,12 +18,33 @@ int main()
 	Data data(vstupnySubor);
 	PrvaCast prvaCast(data);
 	DruhaCast druhaCast(data);
-	/*while (prvaCast.koniec())
-	{
-		prvaCast.spustiFilter(vstupnySubor);
-	}*/
-	prvaCast.spustiFilter(vstupnySubor);
-	druhaCast.IteratorInterface();
+	TretiaCast tretiaCast(data);
+    int cisloUrovne = 50;
+    while (cisloUrovne != 0) {
+        std::cout << "Zadaj cislo urovne [1-3] alebo 0 pre koniec: ";
+        std::string vstup;
+        std::cin >> vstup;
+        cisloUrovne = std::isdigit(vstup.at(0)) ? std::stoi(vstup.substr(0, 1)) : 42;
+        std::cin.ignore(256, '\n');
+
+        if (cisloUrovne == 1) {
+            prvaCast.spustiFilter();
+        }
+        else if (cisloUrovne == 2) {
+            druhaCast.IteratorInterface();
+        }
+        else if (cisloUrovne == 3) {
+            tretiaCast.spustiTretiuCast();
+        }
+        else if (cisloUrovne == 0) {
+
+            std::cout << "Koniec\n";
+        }
+        else {
+            std::cout << "\x1B[31mNespravne cislo urovne\033[0m\n";
+        }
+    }
+    return 0;
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

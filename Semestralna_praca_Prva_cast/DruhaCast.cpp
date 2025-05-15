@@ -1,5 +1,6 @@
 #include "DruhaCast.h"
 #include "Algorithm.h"
+#include "StvrtaCast.h"
 
 DruhaCast::DruhaCast(const Data& other) : Data(other)
 {
@@ -106,7 +107,6 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 	auto itHierarchyEnd = DopravcaIterator(&hierarchy, nullptr);
 	using VysledokHladaniaVHierarchii = ds::amt::ImplicitSequence<NodeDopravca>;
 	using VysledokHladaniaVSekvencii = ds::amt::ImplicitSequence<Dopravca>;
-	VysledokHladaniaVHierarchii vysledokH;
 	VysledokHladaniaVSekvencii vysledokS;
 	char uroven;
 	std::cout << "Chcete filtrovat podla: [u]lice, [z]astavky\n";
@@ -138,15 +138,15 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 			itHierarchyBegin,
 			itHierarchyEnd,
 			pouzivanyFilterVHierarchii,
-			vysledokH,
-			[&](ds::amt::ImplicitSequence<NodeDopravca>& vystupnyZoznam, NodeDopravca& hodnota) {
-				vystupnyZoznam.insertLast().data_ = hodnota;
+			vysledokS,
+			[&](ds::amt::ImplicitSequence<Dopravca>& vystupnyZoznam, NodeDopravca& hodnota) {
+				for (auto it = hodnota.getZastavky()->accessFirst(); it != hodnota.getZastavky()->accessLast(); ++it)
+				{
+					vystupnyZoznam.insertLast().data_ = it->data_;
+				}
 			}
 		);
-		for (size_t i = 0; i < vysledokH.size(); i++)
-		{
-			vysledokH.access(i)->data_.vypisZastavky();
-		};
+		StvrtaCast stvrtaCast(vysledokS);
 	}
 	else
 	{
@@ -219,10 +219,7 @@ void DruhaCast::FiltrujZoznamZastavok(DopravcaIterator& it)
 				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);
-		for (size_t i = 0; i < vysledokH.size(); i++)
-		{
-			vysledokH.access(i)->data_.vypisZastavky();
-		};
+		StvrtaCast stvrtaCast(vysledokS);
 	}
 }
 

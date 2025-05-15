@@ -64,5 +64,5 @@ public:
 			&& poradieNode_ == other.poradieNode_;
 	}
 
-
+	
 };

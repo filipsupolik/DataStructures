@@ -12,8 +12,10 @@ protected:
 	bool koniecProgramu = false;
 	std::string nazovObce, castNazvuUice = "";
 	double minLong, minLat, maxLong, maxLat, equal = 0.0;
-	std::vector<Dopravca> filtrovanyZoznam;
+
+	
 	using ZoznamZastavok = ds::amt::ImplicitSequence<Dopravca>;
+	ZoznamZastavok* filtrovanyZoznam = nullptr;
 	ZoznamZastavok* zoznamZastavok = nullptr;
 
 	std::string toLowerCase(const std::string& input) {
@@ -26,16 +28,18 @@ public:
 	Data();
 	Data(const Data& data)
 	{
-		this->zoznamZastavok = data.zoznamZastavok;
-		this->filtrovanyZoznam = data.filtrovanyZoznam;
+		this->zoznamZastavok = new ZoznamZastavok(*data.zoznamZastavok);
+		this->filtrovanyZoznam = new ZoznamZastavok(*data.filtrovanyZoznam);
 	}
 	Data(std::string subor)
 	{
 		this->zoznamZastavok = new ZoznamZastavok();
+		this->filtrovanyZoznam = new ZoznamZastavok();
 		nacitajZastavku(subor);
 	};
 	~Data()
 	{
+		delete filtrovanyZoznam;
 		delete this->zoznamZastavok;
 	}
 
