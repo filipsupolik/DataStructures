@@ -62,7 +62,7 @@ public:
 			vstupnyZoznam.end(),
 			pouzivanyFilter,
 			vystupnyZoznam,
-			[&](ZoznamZastavok vystupnyZoznam, Dopravca hodnota) {
+			[&](ZoznamZastavok& vystupnyZoznam, Dopravca hodnota) {
 				vystupnyZoznam.insertLast().data_ = hodnota;
 			}
 		);
@@ -71,7 +71,7 @@ public:
 	{
 		for (size_t i = 0; i < filtrovanyZoznam->size(); ++i)
 		{
-			std::cout << filtrovanyZoznam->access(i)->data_.stopId << ", " << filtrovanyZoznam->access(i)->data_.street << ", " << filtrovanyZoznam->access(i)->data_.manicipality << std::endl;
+			std::cout << filtrovanyZoznam->access(i)->data_.FullNameBusStop() << std::endl;
 		}
 	}
 
