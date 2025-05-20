@@ -44,6 +44,13 @@ public:
 				std::cout << it->data_.FullNameBusStop();
 			}
 		}
+		else
+		{
+			for (auto it = zastavky.accessFirst(); it != zastavky.accessLast(); it++)
+			{
+				std::cout << it->data_.FullNameBusStop() << std::endl;
+			}
+		}
 
 		
 	};

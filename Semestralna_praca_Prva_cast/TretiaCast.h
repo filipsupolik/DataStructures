@@ -2,10 +2,11 @@
 #include <libds/adt/table.h>
 #include <libds/heap_monitor.h>
 #include "Dopravca.h"
+
 class TretiaCast: public Data
 {
 private:
-	ds::adt::Table<int, Dopravca*>* tabulkaZastavok;
+	ds::adt::Treap<int, Dopravca*>* tabulkaZastavok;
 public:
 	TretiaCast(const Data& data): Data(data)
 	{
@@ -20,6 +21,7 @@ public:
 
 	void naplntabulku(ZoznamZastavok* nacitaneZastavky, ds::adt::Table<int, Dopravca*>& utriedenaTabulkaZastavok)
 	{
+		Dopravca** duplikat;
 		for (auto it = nacitaneZastavky->begin(); it != nacitaneZastavky->end(); it++)
 		{
 			utriedenaTabulkaZastavok.insert((*it).stopId, &(*it));
