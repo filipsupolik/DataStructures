@@ -41,7 +41,14 @@ public:
 	void vypisZastavku(int idZastavky)
 	{
 		Dopravca* najdenaZastavka = this->najdiZastavku(idZastavky, *tabulkaZastavok);
-		std::cout << najdenaZastavka->FullNameBusStop();
+		if (najdenaZastavka == nullptr)
+		{
+			std::cout << "Zastavka nebola najdena" << std::endl;
+		}
+		else
+		{
+			std::cout << najdenaZastavka->FullNameBusStop();
+		}
 	}
 
 	void spustiTretiuCast()

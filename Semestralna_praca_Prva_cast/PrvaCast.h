@@ -16,10 +16,18 @@ public:
 	PrvaCast(Data& data) : Data(data) {};
 	void spustiFilter() 
 	{
-		char nacitajVstup = vstupZKlavesnice();
-		zadajZoznamParametrov(nacitajVstup);
-		filtrujZoznam(*zoznamZastavok, *filtrovanyZoznam, nacitajVstup);
-		vypisZastavky();
+		while (!this->koniecProgramu)
+		{
+			char nacitajVstup = vstupZKlavesnice();
+			if (nacitajVstup == 'k') {
+				break;
+			}
+			else {
+				zadajZoznamParametrov(nacitajVstup);
+				filtrujZoznam(*zoznamZastavok, *filtrovanyZoznam, nacitajVstup);
+				vypisZastavky();
+			}
+		};
 	}
 
 	void filtrujZoznam(ZoznamZastavok& vstupnyZoznam, ZoznamZastavok& vystupnyZoznam, const char typFiltru)
@@ -73,17 +81,6 @@ public:
 		{
 			std::cout << filtrovanyZoznam->access(i)->data_.FullNameBusStop() << std::endl;
 		}
-	}
-
-	bool koniec()
-	{
-		switch (vstupZKlavesnice())
-		{
-		case 'k':
-			this->koniecProgramu = true;
-			break;
-		}
-		return this->koniecProgramu;
 	}
 };
 
